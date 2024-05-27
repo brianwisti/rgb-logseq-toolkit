@@ -25,7 +25,7 @@ anything.
 
 ## Tools
 
-Initial code sketches --- or "prototypes" if your background isn't in art ---
+Initial code sketches – or "prototypes" if your background isn't in art –
 are in [Python][python]. If performance, portability, or my attention span
 become an issue, I may port my sketches to [Go][go-lang] or [Rust][rust].
 
