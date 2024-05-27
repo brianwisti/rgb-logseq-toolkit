@@ -1,0 +1,34 @@
+[project]
+name = "rgb-logseq"
+version = "0.1.0"
+description = "Default template for PDM package"
+authors = [
+    {name = "Brian Wisti", email = "brianwisti@pobox.com"},
+]
+dependencies = [
+    "pyright>=1.1.363",
+    "pytest>=8.2.0",
+    "Faker>=25.2.0",
+    "ruff>=0.4.4",
+    "pydantic>=2.7.1",
+    "pyfakefs>=5.5.0",
+    "mypy>=1.10.0",
+    "kuzu>=0.4.2",
+    "rich>=13.7.1",
+    "polars>=0.20.30",
+    "python-dotenv>=1.0.1",
+]
+requires-python = "==3.12.*"
+readme = "README.md"
+license = {text = "MIT"}
+
+
+[tool.pdm]
+distribution = false
+
+[tool.pytest.ini_options]
+pythonpath = "src"
+
+[tool.ruff.lint]
+# C901: McCabe complexity
+select = ["E4", "E7", "E9", "F", "C901"]
