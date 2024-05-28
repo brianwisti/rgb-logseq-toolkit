@@ -96,7 +96,7 @@ class TestBlockFromLines:
         assert block.content == content
 
     def test_multiline_block_depth_mismatch(self, multiline_block_lines):
-        multiline_block_lines[1].depth += 1
+        multiline_block_lines[1].raw = f"\t{multiline_block_lines[1].raw}"
 
         with pytest.raises(ValueError):
             _ = from_lines(multiline_block_lines)
