@@ -42,12 +42,27 @@ class Line(BaseModel):
 
     raw: str
     content: str
-    depth: int
     is_block_opener: bool
     is_directive_opener: bool
     is_directive_closer: bool
     directive: str | None = None
     links: list[GraphLink] = []
+
+    @property
+    def depth(self) -> int:
+        """Return the number of parent Blocks this Line has."""
+        content = self.raw.lstrip(MARK_BLOCK_INDENT)
+        line_depth = len(self.raw) - len(content)
+
+        if content.startswith(MARK_BLOCK_OPENER):
+            line_depth += 1
+        elif content.startswith(MARK_BLOCK_CONTINUATION):
+            line_depth += 1
+        elif content == "-":
+            logging.debug("Empty branch line")
+            line_depth += 1
+
+        return line_depth
 
     @property
     def is_code_fence(self) -> bool:
@@ -90,7 +105,6 @@ class Line(BaseModel):
 def parse_line(source: str) -> Line:
     """Parse a single line of text from a Logseq page."""
     content = source
-    depth = 0
     is_block_opener = False
     is_directive_opener = False
     is_directive_closer = False
@@ -99,15 +113,12 @@ def parse_line(source: str) -> Line:
 
     while content.startswith(MARK_BLOCK_INDENT):
         content = content[1:]
-        depth += 1
 
     if content.startswith(MARK_BLOCK_OPENER):
         content = content[2:]
-        depth += 1
         is_block_opener = True
     elif content.startswith(MARK_BLOCK_CONTINUATION):
         content = content[2:]
-        depth += 1
 
     if content.startswith(MARK_DIRECTIVE_OPENER):
         is_directive_opener = True
@@ -120,13 +131,11 @@ def parse_line(source: str) -> Line:
     elif content == "-":
         logging.debug("Empty branch line")
         content = ""
-        depth += 1
         is_block_opener = True
 
     return Line(
         raw=source,
         content=content,
-        depth=depth,
         is_block_opener=is_block_opener,
         is_directive_opener=is_directive_opener,
         is_directive_closer=is_directive_closer,
