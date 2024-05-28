@@ -14,7 +14,6 @@ from .page import load_page_file
 
 logging.basicConfig(level=logging.INFO, handlers=[RichHandler()])
 load_dotenv()
-LOGSEQ_PATH = os.getenv("GRAPH_PATH")
 
 
 def load_graph(graph_path: Path) -> Graph:
@@ -34,7 +33,7 @@ def load_graph(graph_path: Path) -> Graph:
     return graph
 
 
-def create_db():
+def create_db() -> kuzu.Connection:
     db = kuzu.Database("./graph_db")
     conn = kuzu.Connection(db)
 
@@ -46,7 +45,10 @@ def create_db():
 
 def main() -> None:
     """Do interesting stuff."""
-    pages_path = Path(LOGSEQ_PATH).expanduser()
+    graph_path = os.getenv("GRAPH_PATH")
+    assert graph_path
+
+    pages_path = Path(graph_path).expanduser()
     graph = load_graph(pages_path)
     graph_name = pages_path.stem
     logging.info("Loaded graph %s; %s pages", graph_name, len(graph.pages))

@@ -43,9 +43,6 @@ class Line(BaseModel):
     raw: str
     content: str
     is_block_opener: bool
-    is_directive_opener: bool
-    is_directive_closer: bool
-    directive: str | None = None
     links: list[GraphLink] = []
 
     @property
@@ -65,6 +62,18 @@ class Line(BaseModel):
         return line_depth
 
     @property
+    def directive(self) -> str | None:
+        """
+        Return the directive opened or closed by this line.
+
+        If none, return None.
+        """
+        if self.is_directive_opener or self.is_directive_closer:
+            return self.content.split(MARK_DIRECTIVE_SPLIT)[1]
+
+        return None
+
+    @property
     def is_code_fence(self) -> bool:
         """Return True if this Line indicates a code block boundary."""
         return self.content.startswith(MARK_CODE_FENCE)
@@ -79,6 +88,16 @@ class Line(BaseModel):
             return False
 
         return True
+
+    @property
+    def is_directive_opener(self) -> bool:
+        """Return True if this line opens a new directive."""
+        return self.content.startswith(MARK_DIRECTIVE_OPENER)
+
+    @property
+    def is_directive_closer(self) -> bool:
+        """Return True if this line closes a directive block."""
+        return self.content.startswith(MARK_DIRECTIVE_CLOSER)
 
     @property
     def is_empty(self) -> bool:
@@ -106,9 +125,6 @@ def parse_line(source: str) -> Line:
     """Parse a single line of text from a Logseq page."""
     content = source
     is_block_opener = False
-    is_directive_opener = False
-    is_directive_closer = False
-    directive = None
     links = []
 
     while content.startswith(MARK_BLOCK_INDENT):
@@ -120,12 +136,6 @@ def parse_line(source: str) -> Line:
     elif content.startswith(MARK_BLOCK_CONTINUATION):
         content = content[2:]
 
-    if content.startswith(MARK_DIRECTIVE_OPENER):
-        is_directive_opener = True
-        _, directive = content.split(MARK_DIRECTIVE_SPLIT)
-    elif content.startswith(MARK_DIRECTIVE_CLOSER):
-        is_directive_closer = True
-        _, directive = content.split(MARK_DIRECTIVE_SPLIT)
     elif link_matches := LINK_PATTERN.findall(content):
         links = [GraphLink(target=target) for target in link_matches]
     elif content == "-":
@@ -137,9 +147,6 @@ def parse_line(source: str) -> Line:
         raw=source,
         content=content,
         is_block_opener=is_block_opener,
-        is_directive_opener=is_directive_opener,
-        is_directive_closer=is_directive_closer,
-        directive=directive,
         links=links,
     )
 

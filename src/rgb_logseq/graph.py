@@ -23,7 +23,7 @@ class Graph(BaseModel):
         self.pages[page.name] = page
 
     @property
-    def links(self):
+    def links(self) -> list[dict[str, str]]:
         connections = []
 
         for page in self.pages.values():
