@@ -42,19 +42,18 @@ class Line(BaseModel):
 
     raw: str
     content: str
-    is_block_opener: bool
 
     @property
     def depth(self) -> int:
         """Return the number of parent Blocks this Line has."""
-        content = self.raw.lstrip(MARK_BLOCK_INDENT)
-        line_depth = len(self.raw) - len(content)
+        unindented = self.__unindented()
+        line_depth = len(self.raw) - len(unindented)
 
-        if content.startswith(MARK_BLOCK_OPENER):
+        if unindented.startswith(MARK_BLOCK_OPENER):
             line_depth += 1
-        elif content.startswith(MARK_BLOCK_CONTINUATION):
+        elif unindented.startswith(MARK_BLOCK_CONTINUATION):
             line_depth += 1
-        elif content == "-":
+        elif unindented == "-":
             logging.debug("Empty branch line")
             line_depth += 1
 
@@ -87,6 +86,12 @@ class Line(BaseModel):
             return False
 
         return True
+
+    @property
+    def is_block_opener(self) -> bool:
+        """Return True if this line opens a new branch block."""
+        content = self.__unindented()
+        return content.startswith("-")
 
     @property
     def is_directive_opener(self) -> bool:
@@ -125,29 +130,29 @@ class Line(BaseModel):
 
         return Property.loads(self.content)
 
+    def __unindented(self) -> str:
+        """Return raw source without leading indent markers."""
+        return self.raw.lstrip(MARK_BLOCK_INDENT)
+
 
 def parse_line(source: str) -> Line:
     """Parse a single line of text from a Logseq page."""
     content = source
-    is_block_opener = False
 
     while content.startswith(MARK_BLOCK_INDENT):
         content = content[1:]
 
-    if content.startswith(MARK_BLOCK_OPENER):
-        content = content[2:]
-        is_block_opener = True
-    elif content.startswith(MARK_BLOCK_CONTINUATION):
-        content = content[2:]
-    elif content == "-":
+    if content == MARK_BLOCK_OPENER:
         logging.debug("Empty branch line")
         content = ""
-        is_block_opener = True
+    elif content.startswith(MARK_BLOCK_OPENER):
+        content = content[2:]
+    elif content.startswith(MARK_BLOCK_CONTINUATION):
+        content = content[2:]
 
     return Line(
         raw=source,
         content=content,
-        is_block_opener=is_block_opener,
     )
 
 

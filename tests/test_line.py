@@ -35,7 +35,7 @@ class TestParseLine:
         ((MARK_BLOCK_OPENER, True), (MARK_BLOCK_CONTINUATION, False)),
     )
     def test_block_markers_parsed(self, text_line, marker, is_block_opener):
-        block_line = f"{marker}{text_line}"
+        block_line = f"{marker} {text_line}"
         line = parse_line(block_line)
 
         assert line.raw == block_line
