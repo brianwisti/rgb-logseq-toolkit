@@ -43,7 +43,6 @@ class Line(BaseModel):
     raw: str
     content: str
     is_block_opener: bool
-    links: list[GraphLink] = []
 
     @property
     def depth(self) -> int:
@@ -109,6 +108,12 @@ class Line(BaseModel):
         """Return True if this line indicates a Block property."""
         return MARK_PROPERTY in self.content and not self.is_code_fence
 
+    @property
+    def links(self) -> list[GraphLink]:
+        """Return a list of graph links contained in this Line."""
+        link_matches = LINK_PATTERN.findall(self.content)
+        return [GraphLink(target=target) for target in link_matches]
+
     def as_property(self) -> Property:
         """
         Return a Property object from this Line if possible.
@@ -125,7 +130,6 @@ def parse_line(source: str) -> Line:
     """Parse a single line of text from a Logseq page."""
     content = source
     is_block_opener = False
-    links = []
 
     while content.startswith(MARK_BLOCK_INDENT):
         content = content[1:]
@@ -135,9 +139,6 @@ def parse_line(source: str) -> Line:
         is_block_opener = True
     elif content.startswith(MARK_BLOCK_CONTINUATION):
         content = content[2:]
-
-    elif link_matches := LINK_PATTERN.findall(content):
-        links = [GraphLink(target=target) for target in link_matches]
     elif content == "-":
         logging.debug("Empty branch line")
         content = ""
@@ -147,7 +148,6 @@ def parse_line(source: str) -> Line:
         raw=source,
         content=content,
         is_block_opener=is_block_opener,
-        links=links,
     )
 
 
