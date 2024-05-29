@@ -26,6 +26,14 @@ license = {text = "MIT"}
 [tool.pdm]
 distribution = false
 
+[tool.pdm.dev-dependencies]
+lint = [
+    "pre-commit>=3.7.1",
+]
+
+[tool.pdm.scripts]
+lint = "pre-commit run --all-files"
+
 [tool.pytest.ini_options]
 pythonpath = "src"
 
