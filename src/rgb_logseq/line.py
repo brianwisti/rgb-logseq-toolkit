@@ -41,7 +41,22 @@ class Line(BaseModel):
     """
 
     raw: str
-    content: str
+
+    @property
+    def content(self) -> str:
+        """Return line text without graph structure indicators."""
+        unindented = self.__unindented()
+
+        if not unindented:
+            return ""
+
+        if unindented == MARK_BLOCK_OPENER:
+            return ""
+
+        if unindented[0] in [MARK_BLOCK_OPENER, MARK_BLOCK_CONTINUATION]:
+            return unindented[2:]
+
+        return unindented
 
     @property
     def depth(self) -> int:
@@ -137,22 +152,8 @@ class Line(BaseModel):
 
 def parse_line(source: str) -> Line:
     """Parse a single line of text from a Logseq page."""
-    content = source
-
-    while content.startswith(MARK_BLOCK_INDENT):
-        content = content[1:]
-
-    if content == MARK_BLOCK_OPENER:
-        logging.debug("Empty branch line")
-        content = ""
-    elif content.startswith(MARK_BLOCK_OPENER):
-        content = content[2:]
-    elif content.startswith(MARK_BLOCK_CONTINUATION):
-        content = content[2:]
-
     return Line(
         raw=source,
-        content=content,
     )
 
 
