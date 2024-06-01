@@ -7,7 +7,7 @@ lint:
     pdm run ruff check .
 
 types:
-    pdm run mypy --strict src
+    pdm run mypy --strict src tests/conftest.py
 
 check: lint types
 
