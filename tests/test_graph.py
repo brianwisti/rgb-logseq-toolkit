@@ -11,13 +11,63 @@ def graph():
     return Graph()
 
 
-class TestGraph:
+class TestGraphPages:
     def test_empty_graph(self):
         graph = Graph()
 
         assert not graph.pages
 
+
+class TestAddPage:
     def test_add_page(self, graph, page):
         graph.add_page(page)
 
         assert page.name in graph.pages
+
+    def test_placeholders_added_for_page_links(self, graph, linked_pages):
+        link_source = linked_pages.link_source
+        link_target = linked_pages.link_target
+        graph.add_page(link_source)
+
+        assert link_target.name in graph.pages
+        assert graph.pages[link_target.name].is_placeholder
+
+
+class TestGraphLinks:
+    def test_with_empty_graph(self):
+        graph = Graph()
+
+        assert not graph.links
+
+    def test_with_linked_pages(self, graph, linked_pages):
+        link_source = linked_pages.link_source
+        link_target = linked_pages.link_target
+        graph.add_page(link_source)
+        graph.add_page(link_target)
+
+        assert graph.links
+        print(graph.links)
+        assert any(
+            link
+            for link in graph.links
+            if link["from"] == link_source.name and link["to"] == link_target.name
+        )
+
+    def test_with_placeholder_link(self, graph, linked_pages):
+        link_source = linked_pages.link_source
+        link_target = linked_pages.link_target
+        graph.add_page(link_source)
+
+        assert graph.links
+        assert any(
+            link
+            for link in graph.links
+            if link["from"] == link_source.name and link["to"] == link_target.name
+        )
+
+    def test_placeholder_page_added(self, graph, linked_pages):
+        link_source = linked_pages.link_source
+        link_target = linked_pages.link_target
+        graph.add_page(link_source)
+
+        assert link_target.name in graph.pages

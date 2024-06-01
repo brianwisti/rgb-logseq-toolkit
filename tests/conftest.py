@@ -77,12 +77,12 @@ def generate_graph_link(faker: Faker) -> GraphLink:
 
 def generate_page_name(faker: Faker) -> str:
     """Return a string appropriate for graph page names."""
-    return faker.word()
+    return str(faker.unique.word())
 
 
 def generate_text_line(faker: Faker) -> str:
     """Return a line of text usable by fixtures."""
-    return faker.sentence()
+    return str(faker.unique.sentence())
 
 
 # pylint: disable=redefined-outer-name
@@ -130,21 +130,21 @@ def line_with_link(graph_link: GraphLink) -> tuple[line.Line, GraphLink]:
 
 
 @pytest.fixture
-def page(branch_block: Block, page_name: str) -> Page:
-    return parse_page_text(branch_block.raw, name=page_name)
+def page(branch_block: Block, faker: Faker) -> Page:
+    return parse_page_text(branch_block.raw, name=generate_page_name(faker))
 
 
 @pytest.fixture
-def another_page(branch_block: Block, page_name: str) -> Page:
-    return parse_page_text(branch_block.raw, name=page_name)
+def another_page(branch_block: Block, faker: Faker) -> Page:
+    return parse_page_text(branch_block.raw, name=generate_page_name(faker))
 
 
 @pytest.fixture
-def linked_pages(page: Page, graph_link: GraphLink, page_name: str) -> LinkedPages:
+def linked_pages(page: Page, graph_link: GraphLink, faker: Faker) -> LinkedPages:
     graph_link.target = page.name
     link_text = as_page_link(graph_link)
     link_block = as_branch_block(link_text)
-    link_source = parse_page_text(link_block, name=page_name)
+    link_source = parse_page_text(link_block, name=generate_page_name(faker))
 
     return LinkedPages(link_source=link_source, link_target=page, link=graph_link)
 
@@ -152,7 +152,7 @@ def linked_pages(page: Page, graph_link: GraphLink, page_name: str) -> LinkedPag
 @pytest.fixture
 def range_cap(faker: Faker) -> int:
     """Return an arbitrary limit on range for test collections."""
-    return faker.random_int(min=2, max=RANGE_MAX)
+    return int(faker.random_int(min=2, max=RANGE_MAX))
 
 
 @pytest.fixture
@@ -220,4 +220,4 @@ def multiline_block_lines(text_lines: list[str]) -> list[line.Line]:
 @pytest.fixture
 def page_name(faker: Faker) -> str:
     """Return an appropriate name for a Logseq page."""
-    return faker.word()
+    return generate_page_name(faker)

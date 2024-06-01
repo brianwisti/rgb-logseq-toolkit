@@ -84,6 +84,7 @@ class Block(BaseModel):
     @property
     def tags(self) -> ValueList:
         """Return the list of string tags for this Block."""
+
         if "tags" not in self.properties:
             return []
 

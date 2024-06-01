@@ -29,9 +29,8 @@ files = [
   "src/",
   "tests/conftest.py",
 ]
-plugins = "pydantic.mypy"
 disallow_any_generics = true
-disallow_subclassing_any = true
+disallow_subclassing_any = false
 disallow_untyped_calls = true
 extra_checks = true
 no_implicit_reexport = true
