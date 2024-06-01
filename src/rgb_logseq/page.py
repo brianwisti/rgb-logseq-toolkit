@@ -22,6 +22,9 @@ class Page(BaseModel):
     name: str
     properties: dict[str, Property]
 
+    # True if this should not be treated as a full Page by handlers.
+    is_placeholder: bool = False
+
     @property
     def is_public(self) -> bool:
         """Return True if this page's root content is public."""

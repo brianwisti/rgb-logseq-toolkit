@@ -20,12 +20,13 @@ def page_path(page_name, branch_block_line, fs):
 
 
 class TestPageLoads:
-    def test_empty(self, page_name):
+    def test_empty_defaults(self, page_name):
         text = ""
         page = parse_page_text(text, name=page_name)
 
         assert page.blocks
         assert page.name == page_name
+        assert not page.is_placeholder
 
     def test_branch_block(self, branch_block_line, page_name):
         text = branch_block_line.raw
