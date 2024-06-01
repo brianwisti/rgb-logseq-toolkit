@@ -35,6 +35,10 @@ class Page(BaseModel):
         """Return all GraphLink objects found in this Page."""
         return [link for block in self.blocks for link in block.links]
 
+    def add_block(self, block: Block) -> None:
+        """Add a Block to the end of this Page."""
+        self.blocks.append(block)
+
 
 def parse_page_text(text: str, name: str) -> Page:
     """Initialize a Page from a text string of Logseq blocks."""

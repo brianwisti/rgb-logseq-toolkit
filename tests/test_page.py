@@ -45,6 +45,11 @@ class TestPageLoads:
 
         assert not page.properties
 
+    def test_add_block(self, page, branch_block):
+        page.add_block(branch_block)
+
+        assert branch_block in page.blocks
+
 
 class TestPage:
     def test_is_public(self, public_prop, page_name):
