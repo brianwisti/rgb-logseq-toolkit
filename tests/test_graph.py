@@ -46,7 +46,6 @@ class TestGraphLinks:
         graph.add_page(link_target)
 
         assert graph.links
-        print(graph.links)
         assert any(
             link
             for link in graph.links
@@ -58,7 +57,6 @@ class TestGraphLinks:
         link_target = linked_pages.link_target
         graph.add_page(link_source)
 
-        assert graph.links
         assert any(
             link
             for link in graph.links

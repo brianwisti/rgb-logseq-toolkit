@@ -33,12 +33,27 @@ def load_graph(graph_path: Path) -> Graph:
     return graph
 
 
+PAGE_SCHEMA = """
+    create node table Page(
+        name string,
+        is_placeholder boolean,
+        primary key (name)
+    )
+"""
+
+LINKS_SCHEMA = """
+    create rel table Links(
+        from Page
+        to Page
+    )
+"""
+
+
 def create_db() -> kuzu.Connection:
     db = kuzu.Database("./graph_db")
     conn = kuzu.Connection(db)
-
-    conn.execute("create node table Page(name string, primary key (name))")
-    conn.execute("create rel table Links(from Page to Page)")
+    conn.execute(PAGE_SCHEMA)
+    conn.execute(LINKS_SCHEMA)
 
     return conn
 
@@ -52,7 +67,11 @@ def main() -> None:
     graph = load_graph(pages_path)
     graph_name = pages_path.stem
     logging.info("Loaded graph %s; %s pages", graph_name, len(graph.pages))
-    pages = [{"name": page} for page in graph.pages]
+    # TODO: refactor page listing to Graph method
+    pages = [
+        {"name": page.name, "is_placeholder": page.is_placeholder}
+        for page in graph.pages.values()
+    ]
     links = graph.links
     polars.DataFrame(pages).write_csv("page.csv", include_header=False)
     polars.DataFrame(links).write_csv("links.csv", include_header=False)

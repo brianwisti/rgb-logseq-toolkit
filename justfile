@@ -20,4 +20,5 @@ clean-db:
 explore:
     docker run -p 8000:8000 \
       -v {{ cwd }}/graph_db:/database \
+      -e MODE=READ_ONLY \
       --rm kuzudb/explorer:latest

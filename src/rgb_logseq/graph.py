@@ -34,7 +34,6 @@ class Graph(BaseModel):
         for link in page.links:
             if link.target not in self.pages:
                 placeholder = Page(
-                    raw="",
                     name=link.target,
                     blocks=[],
                     properties={},
@@ -47,7 +46,7 @@ class Graph(BaseModel):
         connections = []
 
         for page in self.pages.values():
-            logger.info(page)
+            logger.debug(page)
 
             for link in page.links:
                 connections.append({"from": page.name, "to": link.target})
