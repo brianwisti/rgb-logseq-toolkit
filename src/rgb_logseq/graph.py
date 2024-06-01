@@ -41,6 +41,10 @@ class Graph(BaseModel):
                 )
                 self.add_page(placeholder)
 
+    def has_page(self, page_name: str) -> bool:
+        """Return True if a Page with matching name has been added."""
+        return page_name in self.pages
+
     @property
     def links(self) -> list[dict[str, str]]:
         connections = []

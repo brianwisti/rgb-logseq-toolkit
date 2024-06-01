@@ -18,7 +18,17 @@ class TestGraphPages:
         assert not graph.pages
 
 
-class TestAddPage:
+class TestGraphHasPage:
+    def test_with_page_in_graph(self, graph, page):
+        graph.add_page(page)
+
+        assert graph.has_page(page.name)
+
+    def test_with_page_not_in_graph(self, graph, page):
+        assert not graph.has_page(page.name)
+
+
+class TestGraphAddPage:
     def test_add_page(self, graph, page):
         graph.add_page(page)
 
