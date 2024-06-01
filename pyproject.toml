@@ -23,6 +23,23 @@ readme = "README.md"
 license = {text = "MIT"}
 
 
+[tool.mypy]
+python_version = "3.12"
+files = [
+  "src/",
+  "tests/conftest.py",
+]
+plugins = "pydantic.mypy"
+disallow_any_generics = true
+disallow_subclassing_any = true
+disallow_untyped_calls = true
+extra_checks = true
+no_implicit_reexport = true
+strict_equality = true
+warn_redundant_casts = true
+warn_return_any = true
+warn_unused_ignores = true
+
 [tool.pdm]
 distribution = false
 
