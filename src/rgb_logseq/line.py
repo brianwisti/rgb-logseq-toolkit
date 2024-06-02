@@ -1,10 +1,8 @@
 """Logseq line parsing logic."""
 
-import logging
 import re
 
 from pydantic import BaseModel
-from rich.logging import RichHandler
 
 from .const import (
     MARK_BLOCK_CONTINUATION,
@@ -15,11 +13,10 @@ from .const import (
     MARK_DIRECTIVE_OPENER,
     MARK_DIRECTIVE_SPLIT,
     MARK_PROPERTY,
+    logger,
 )
 from .link import GraphLink
 from .property import Property
-
-logging.basicConfig(level=logging.INFO, handlers=[RichHandler()])
 
 LINK_PATTERN = re.compile(
     r"""
@@ -69,7 +66,7 @@ class Line(BaseModel):
         elif unindented.startswith(MARK_BLOCK_CONTINUATION):
             line_depth += 1
         elif unindented == "-":
-            logging.debug("Empty branch line")
+            logger.debug("Empty branch line")
             line_depth += 1
 
         return line_depth

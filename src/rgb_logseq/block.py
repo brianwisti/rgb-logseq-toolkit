@@ -1,17 +1,11 @@
 """Loading and processing Logseq blocks."""
 
-from __future__ import annotations
-
-import logging
-
 from pydantic import BaseModel
-from rich.logging import RichHandler
 
+from .const import logger
 from .line import Line, parse_line
 from .link import GraphLink
 from .property import Property, ValueList
-
-logging.basicConfig(level=logging.INFO, handlers=[RichHandler()])
 
 
 def toggle(value: bool) -> bool:
@@ -135,7 +129,7 @@ def from_lines(lines: list[Line]) -> Block:
 
     for line in lines:
         if line.depth != depth:
-            logging.error("Line <%s> depth does not match line <%s>", line, lines[0])
+            logger.error("Line <%s> depth does not match line <%s>", line, lines[0])
             raise ValueError("Line depth mismatch in Block.from_lines")
 
         if line.is_code_fence:
@@ -155,7 +149,7 @@ def from_lines(lines: list[Line]) -> Block:
             in_directive = False
 
     if in_code_block:
-        logging.error("Unclosed code block in: %s", lines)
+        logger.error("Unclosed code block in: %s", lines)
         raise ValueError("unclosed code block")
 
     if in_directive:

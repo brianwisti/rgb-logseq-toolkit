@@ -1,37 +1,15 @@
 """Explore my Logseq graph in Kuzu."""
 
 from pathlib import Path
-import logging
 import os
 
 from dotenv import load_dotenv
-from rich.logging import RichHandler
 import kuzu
 import polars
 
+from .const import logger
 from .graph import Graph
 from .page import load_page_file
-
-logging.basicConfig(level=logging.INFO, handlers=[RichHandler()])
-load_dotenv()
-
-
-def load_graph(graph_path: Path) -> Graph:
-    """Load pages in Graph."""
-    logging.info("path: %s", graph_path)
-    graph = Graph()
-    page_folders = ["journals", "pages"]
-
-    for folder in page_folders:
-        subfolder = graph_path / folder
-        for md_path in subfolder.glob("./**/*.md"):
-            logging.debug("md path: %s", md_path)
-            page = load_page_file(md_path)
-            logging.debug("page: %s", page)
-            graph.add_page(page)
-
-    return graph
-
 
 PAGE_SCHEMA = """
     create node table Page(
@@ -47,6 +25,25 @@ LINKS_SCHEMA = """
         to Page
     )
 """
+
+load_dotenv()
+
+
+def load_graph(graph_path: Path) -> Graph:
+    """Load pages in Graph."""
+    logger.info("path: %s", graph_path)
+    graph = Graph()
+    page_folders = ["journals", "pages"]
+
+    for folder in page_folders:
+        subfolder = graph_path / folder
+        for md_path in subfolder.glob("./**/*.md"):
+            logger.debug("md path: %s", md_path)
+            page = load_page_file(md_path)
+            logger.debug("page: %s", page)
+            graph.add_page(page)
+
+    return graph
 
 
 def create_db() -> kuzu.Connection:
@@ -66,7 +63,7 @@ def main() -> None:
     pages_path = Path(graph_path).expanduser()
     graph = load_graph(pages_path)
     graph_name = pages_path.stem
-    logging.info("Loaded graph %s; %s pages", graph_name, len(graph.pages))
+    logger.info("Loaded graph %s; %s pages", graph_name, len(graph.pages))
     # TODO: refactor page listing to Graph method
     pages = [
         {"name": page.name, "is_placeholder": page.is_placeholder}

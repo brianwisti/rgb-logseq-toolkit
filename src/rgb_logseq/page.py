@@ -1,18 +1,13 @@
 """Logseq page handling."""
 
-from __future__ import annotations
-
-import logging
 from pathlib import Path
 
 from pydantic import BaseModel
-from rich.logging import RichHandler
 
 from .block import Block, find_blocks
+from .const import logger
 from .link import GraphLink
 from .property import Property
-
-logging.basicConfig(level=logging.INFO, handlers=[RichHandler()])
 
 
 class Page(BaseModel):
@@ -48,7 +43,7 @@ def parse_page_text(text: str, name: str) -> Page:
     try:
         blocks = find_blocks(text)
     except ValueError as e:
-        logging.error("Error finding blocks in %s", name)
+        logger.error("Error finding blocks in %s", name)
         raise e
     properties = {}
     first_block = blocks[0]
