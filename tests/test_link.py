@@ -1,6 +1,6 @@
 """Test graph links."""
 
-from rgb_logseq.link import DirectLink
+from rgb_logseq.link import DirectLink, TagLink
 
 
 class TestDirectLink:
@@ -14,3 +14,11 @@ class TestDirectLink:
         link = DirectLink(target=page_name, link_text=link_text)
 
         assert link.label == link_text
+
+
+class TestTagLink:
+    def test_link_text_is_ignored(self, page_name, faker):
+        link_text = faker.word()
+        tag_link = TagLink(target=page_name, link_text=link_text)
+
+        assert tag_link.label == page_name
