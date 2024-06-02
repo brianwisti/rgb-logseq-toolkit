@@ -19,13 +19,24 @@ PAGE_SCHEMA = """
     )
 """
 
-LINKS_SCHEMA = """
-    create rel table Links(
-        from Page
-        to Page
+PROPERTY_SCHEMA = """
+    create node table Property(
+        name string,
+        primary key(name)
     )
 """
 
+LINKS_SCHEMA = """
+    create rel table Links(
+        from Page to Page
+    )
+"""
+
+PAGE_PROPERTIES_SCHEMA = """
+    create rel table PageHasProperty(
+        from Page to Property
+    )
+"""
 load_dotenv()
 
 
@@ -51,6 +62,8 @@ def create_db() -> kuzu.Connection:
     conn = kuzu.Connection(db)
     conn.execute(PAGE_SCHEMA)
     conn.execute(LINKS_SCHEMA)
+    conn.execute(PROPERTY_SCHEMA)
+    conn.execute(PAGE_PROPERTIES_SCHEMA)
 
     return conn
 
@@ -64,17 +77,37 @@ def main() -> None:
     graph = load_graph(pages_path)
     graph_name = pages_path.stem
     logger.info("Loaded graph %s; %s pages", graph_name, len(graph.pages))
-    # TODO: refactor page listing to Graph method
+
     pages = [
         {"name": page.name, "is_placeholder": page.is_placeholder}
         for page in graph.pages.values()
     ]
-    links = graph.links
     polars.DataFrame(pages).write_csv("page.csv", include_header=False)
+
+    links = graph.links
     polars.DataFrame(links).write_csv("links.csv", include_header=False)
+
+    page_properties = set()
+    pages_with_properties = []
+
+    for prop, pages_with_prop in graph.page_properties.items():
+        page_properties.add(prop)
+        pages_with_properties += [
+            {"from": page.name, "to": prop} for page in pages_with_prop
+        ]
+
+    polars.DataFrame(list(page_properties)).write_csv(
+        "property.csv", include_header=False
+    )
+    polars.DataFrame(pages_with_properties).write_csv(
+        "page_properties.csv", include_header=False
+    )
+
     conn = create_db()
     conn.execute('COPY Page from "page.csv"')
     conn.execute('COPY Links from "links.csv"')
+    conn.execute('COPY Property from "property.csv"')
+    conn.execute('COPY PageHasProperty from "page_properties.csv"')
 
 
 if __name__ == "__main__":
