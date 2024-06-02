@@ -101,4 +101,9 @@ class TestGraphPageProperties:
     def test_entry_includes_pages_with_property(self, graph, public_page):
         graph.add_page(public_page)
 
-        assert public_page in graph.page_properties["public"]
+        assert public_page.name in graph.page_properties["public"]
+
+    def test_entry_includes_value_for_page(self, graph, public_page):
+        graph.add_page(public_page)
+
+        assert graph.page_properties["public"][public_page.name] == "true"

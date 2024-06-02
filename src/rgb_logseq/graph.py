@@ -18,21 +18,24 @@ class EmptyBlockLinesError(Exception):
     """Error raised when a block is created with no lines."""
 
 
+PagePropertyMap = dict[str, dict[str, str]]
+
+
 class Graph(BaseModel):
     """An organized collection of pages."""
 
     pages: dict[str, Page] = {}
 
     @property
-    def page_properties(self) -> dict[str, list[Page]]:
+    def page_properties(self) -> PagePropertyMap:
         """Return information about all page-level properties in the graph."""
-        properties: dict[str, list[Page]] = {}
+        properties: PagePropertyMap = {}
 
         for page in self.pages.values():
-            for prop in page.properties:
-                prop_pages = properties.get(prop, [])
-                prop_pages.append(page)
-                properties[prop] = prop_pages
+            for prop_name, prop in page.properties.items():
+                prop_pages = properties.get(prop_name, {})
+                prop_pages[page.name] = prop.value
+                properties[prop_name] = prop_pages
 
         return properties
 

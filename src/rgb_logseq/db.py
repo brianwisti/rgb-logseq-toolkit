@@ -34,7 +34,8 @@ LINKS_SCHEMA = """
 
 PAGE_PROPERTIES_SCHEMA = """
     create rel table PageHasProperty(
-        from Page to Property
+        from Page to Property,
+        value string
     )
 """
 load_dotenv()
@@ -73,6 +74,10 @@ def main() -> None:
     graph_path = os.getenv("GRAPH_PATH")
     assert graph_path
 
+    csv_options = {
+        "include_header": False,
+        "quote_style": "non_numeric",
+    }
     pages_path = Path(graph_path).expanduser()
     graph = load_graph(pages_path)
     graph_name = pages_path.stem
@@ -82,25 +87,26 @@ def main() -> None:
         {"name": page.name, "is_placeholder": page.is_placeholder}
         for page in graph.pages.values()
     ]
-    polars.DataFrame(pages).write_csv("page.csv", include_header=False)
+    polars.DataFrame(pages).write_csv("page.csv", **csv_options)
 
     links = graph.links
-    polars.DataFrame(links).write_csv("links.csv", include_header=False)
+    polars.DataFrame(links).write_csv("links.csv", **csv_options)
 
     page_properties = set()
     pages_with_properties = []
 
     for prop, pages_with_prop in graph.page_properties.items():
         page_properties.add(prop)
+        # Tweaking nested strings until Kuzu issue #3461 is resolved.
+        # - https://github.com/kuzudb/kuzu/issues/3461
         pages_with_properties += [
-            {"from": page.name, "to": prop} for page in pages_with_prop
+            {"from": page, "to": prop, "value": value.replace('"', "*")}
+            for page, value in pages_with_prop.items()
         ]
 
-    polars.DataFrame(list(page_properties)).write_csv(
-        "property.csv", include_header=False
-    )
+    polars.DataFrame(list(page_properties)).write_csv("property.csv", **csv_options)
     polars.DataFrame(pages_with_properties).write_csv(
-        "page_properties.csv", include_header=False
+        "page_properties.csv", **csv_options
     )
 
     conn = create_db()
