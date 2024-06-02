@@ -87,3 +87,18 @@ class TestGraphLinkTracking:
             for link in graph.links
             if link["from"] == link_source.name and link["to"] == link_target.name
         )
+
+
+class TestGraphPageProperties:
+    def test_with_empty_graph(self, graph):
+        assert not graph.page_properties
+
+    def test_page_property_recorded(self, graph, public_page):
+        graph.add_page(public_page)
+
+        assert "public" in graph.page_properties
+
+    def test_entry_includes_pages_with_property(self, graph, public_page):
+        graph.add_page(public_page)
+
+        assert public_page in graph.page_properties["public"]

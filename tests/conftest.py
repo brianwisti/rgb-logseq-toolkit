@@ -135,6 +135,11 @@ def page(branch_block: Block, faker: Faker) -> Page:
 
 
 @pytest.fixture
+def public_page(public_prop: Property, page_name: str) -> Page:
+    return parse_page_text(public_prop.raw, name=page_name)
+
+
+@pytest.fixture
 def another_page(branch_block: Block, faker: Faker) -> Page:
     return parse_page_text(branch_block.raw, name=generate_page_name(faker))
 

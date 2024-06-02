@@ -23,6 +23,19 @@ class Graph(BaseModel):
 
     pages: dict[str, Page] = {}
 
+    @property
+    def page_properties(self) -> dict[str, list[Page]]:
+        """Return information about all page-level properties in the graph."""
+        properties: dict[str, list[Page]] = {}
+
+        for page in self.pages.values():
+            for prop in page.properties:
+                prop_pages = properties.get(prop, [])
+                prop_pages.append(page)
+                properties[prop] = prop_pages
+
+        return properties
+
     def add_page(self, page: Page) -> None:
         """Add a Page to the Graph."""
         logger.info("Adding page to graph: %s", page.name)
