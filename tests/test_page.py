@@ -76,3 +76,19 @@ class TestPageLinks:
         targets = [link.target for link in page.links]
 
         assert link.target in targets
+
+
+class TestPageTags:
+    def test_empty_tags_by_default(self, page):
+        assert not page.tags
+
+    @pytest.mark.parametrize(
+        "tag_prop,tags",
+        [("a", ("a",)), ("a,b", ("a", "b")), ("a, b", ("a", "b"))],
+    )
+    def test_with_tags_prop(self, page, tag_prop, tags):
+        page.properties["tags"] = tag_prop
+        page_tags = page.tags
+        found = [tag for tag in tags if tag in page_tags]
+
+        assert len(found) == len(page_tags)

@@ -33,6 +33,15 @@ class Page(BaseModel):
         """Return all DirectLink objects found in this Page."""
         return [link for block in self.blocks for link in block.links]
 
+    @property
+    def tags(self) -> list[str]:
+        """Return tags directly associated with this page."""
+        if "tags" not in self.properties:
+            return []
+
+        tag_prop = str(self.properties["tags"])
+        return [tag.strip() for tag in tag_prop.split(",")]
+
     def add_block(self, block: Block) -> None:
         """Add a Block to the end of this Page."""
         self.blocks.append(block)
