@@ -58,7 +58,7 @@ class TestGraphPageManagement:
         assert graph.has_page(link_target.name)
 
 
-class TestGraphLinkTracking:
+class TestDirectLinksInGraph:
     def test_with_empty_graph(self):
         graph = Graph()
 

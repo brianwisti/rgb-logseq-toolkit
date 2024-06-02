@@ -6,7 +6,7 @@ from faker import Faker
 
 from rgb_logseq import line
 from rgb_logseq.block import Block, find_blocks
-from rgb_logseq.link import GraphLink
+from rgb_logseq.link import DirectLink
 from rgb_logseq.page import Page, parse_page_text
 from rgb_logseq.property import Property
 
@@ -32,11 +32,11 @@ class DirectivePair:
 
 @dataclass
 class LinkedPages:
-    """Holds two Pages connected by a GraphLink."""
+    """Holds two Pages connected by a DirectLink."""
 
     link_source: Page
     link_target: Page
-    link: GraphLink
+    link: DirectLink
 
 
 def as_branch_block(text: str) -> str:
@@ -52,8 +52,8 @@ def as_multiline_block(lines: list[str]) -> str:
     return "\n".join([first_line, remaining_lines])
 
 
-def as_page_link(link: GraphLink) -> str:
-    """Return a string indicating a page link to the GraphLink target."""
+def as_page_link(link: DirectLink) -> str:
+    """Return a string indicating a page link to the DirectLink target."""
 
     return f"[[{link.target}]]"
 
@@ -68,11 +68,11 @@ def as_branch_continuation(text: str) -> str:
     return f"  {text}"
 
 
-def generate_graph_link(faker: Faker) -> GraphLink:
-    """Return a GraphLink usable by fixtures."""
+def generate_graph_link(faker: Faker) -> DirectLink:
+    """Return a DirectLink usable by fixtures."""
     target = generate_page_name(faker)
 
-    return GraphLink(target=target)
+    return DirectLink(target=target)
 
 
 def generate_page_name(faker: Faker) -> str:
@@ -103,27 +103,27 @@ def code_fence() -> str:
 
 
 @pytest.fixture
-def graph_link(page_name: str) -> GraphLink:
+def graph_link(page_name: str) -> DirectLink:
     """Return a direct link to a graph page."""
-    return GraphLink(target=page_name)
+    return DirectLink(target=page_name)
 
 
 @pytest.fixture
-def graph_links(range_cap: int, faker: Faker) -> list[GraphLink]:
-    """Return a list of GraphLink objects."""
+def graph_links(range_cap: int, faker: Faker) -> list[DirectLink]:
+    """Return a list of DirectLink objects."""
     return [generate_graph_link(faker) for _ in range(range_cap)]
 
 
 @pytest.fixture
-def labeled_graph_link(page_name: str, faker: Faker) -> GraphLink:
+def labeled_graph_link(page_name: str, faker: Faker) -> DirectLink:
     """Return a link to a graph page using a custom label."""
     label = faker.word()
 
-    return GraphLink(target=page_name, link_text=label)
+    return DirectLink(target=page_name, link_text=label)
 
 
 @pytest.fixture
-def line_with_link(graph_link: GraphLink) -> tuple[line.Line, GraphLink]:
+def line_with_link(graph_link: DirectLink) -> tuple[line.Line, DirectLink]:
     parsed = line.parse_line(as_page_link(graph_link))
 
     return (parsed, graph_link)
@@ -145,7 +145,7 @@ def another_page(branch_block: Block, faker: Faker) -> Page:
 
 
 @pytest.fixture
-def linked_pages(page: Page, graph_link: GraphLink, faker: Faker) -> LinkedPages:
+def linked_pages(page: Page, graph_link: DirectLink, faker: Faker) -> LinkedPages:
     graph_link.target = page.name
     link_text = as_page_link(graph_link)
     link_block = as_branch_block(link_text)

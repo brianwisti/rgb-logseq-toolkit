@@ -6,7 +6,7 @@ from pydantic import BaseModel
 
 from .block import Block, find_blocks
 from .const import logger
-from .link import GraphLink
+from .link import DirectLink
 from .property import Property
 
 
@@ -29,8 +29,8 @@ class Page(BaseModel):
         return self.properties["public"].is_true
 
     @property
-    def links(self) -> list[GraphLink]:
-        """Return all GraphLink objects found in this Page."""
+    def links(self) -> list[DirectLink]:
+        """Return all DirectLink objects found in this Page."""
         return [link for block in self.blocks for link in block.links]
 
     def add_block(self, block: Block) -> None:

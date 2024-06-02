@@ -15,7 +15,7 @@ from .const import (
     MARK_PROPERTY,
     logger,
 )
-from .link import GraphLink
+from .link import DirectLink
 from .property import Property
 
 LINK_PATTERN = re.compile(
@@ -126,10 +126,10 @@ class Line(BaseModel):
         return MARK_PROPERTY in self.content and not self.is_code_fence
 
     @property
-    def links(self) -> list[GraphLink]:
+    def links(self) -> list[DirectLink]:
         """Return a list of graph links contained in this Line."""
         link_matches = LINK_PATTERN.findall(self.content)
-        return [GraphLink(target=target) for target in link_matches]
+        return [DirectLink(target=target) for target in link_matches]
 
     def as_property(self) -> Property:
         """

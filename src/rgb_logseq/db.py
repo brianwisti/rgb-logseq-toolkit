@@ -11,6 +11,8 @@ from .const import logger
 from .graph import Graph
 from .page import load_page_file
 
+DB_NAME = "graph_db"
+GRAPH_PATH_ENV = "GRAPH_PATH"
 PAGE_SCHEMA = """
     create node table Page(
         name string,
@@ -39,28 +41,14 @@ PAGE_PROPERTIES_SCHEMA = """
         value string
     )
 """
+
+PAGE_FOLDERS = ["journals", "pages"]
+PAGE_GLOB = "./**/*.md"
 load_dotenv()
 
 
-def load_graph(graph_path: Path) -> Graph:
-    """Load pages in Graph."""
-    logger.info("path: %s", graph_path)
-    graph = Graph()
-    page_folders = ["journals", "pages"]
-
-    for folder in page_folders:
-        subfolder = graph_path / folder
-        for md_path in subfolder.glob("./**/*.md"):
-            logger.debug("md path: %s", md_path)
-            page = load_page_file(md_path)
-            logger.debug("page: %s", page)
-            graph.add_page(page)
-
-    return graph
-
-
 def create_db() -> kuzu.Connection:
-    db = kuzu.Database("./graph_db")
+    db = kuzu.Database(DB_NAME)
     conn = kuzu.Connection(db)
     conn.execute(PAGE_SCHEMA)
     conn.execute(LINKS_SCHEMA)
@@ -70,15 +58,32 @@ def create_db() -> kuzu.Connection:
     return conn
 
 
+def load_graph(graph_path: Path) -> Graph:
+    """Load pages in Graph."""
+    logger.info("path: %s", graph_path)
+    graph = Graph()
+
+    for folder in PAGE_FOLDERS:
+        subfolder = graph_path / folder
+        for md_path in subfolder.glob(PAGE_GLOB):
+            logger.debug("md path: %s", md_path)
+            page = load_page_file(md_path)
+            logger.debug("page: %s", page)
+            graph.add_page(page)
+
+    return graph
+
+
+def write_as_csv(df: polars.DataFrame, filename: str) -> None:
+    """Write a DataFrame as CSV to the specified file."""
+    df.write_csv(filename, include_header=False, quote_style="non_numeric")
+
+
 def main() -> None:
     """Do interesting stuff."""
-    graph_path = os.getenv("GRAPH_PATH")
+    graph_path = os.getenv(GRAPH_PATH_ENV)
     assert graph_path
 
-    csv_options = {
-        "include_header": False,
-        "quote_style": "non_numeric",
-    }
     pages_path = Path(graph_path).expanduser()
     graph = load_graph(pages_path)
     graph_name = pages_path.stem
@@ -92,10 +97,8 @@ def main() -> None:
         }
         for page in graph.pages.values()
     ]
-    polars.DataFrame(pages).write_csv("page.csv", **csv_options)
-
-    links = graph.links
-    polars.DataFrame(links).write_csv("links.csv", **csv_options)
+    pages_df = polars.DataFrame(pages)
+    links_df = polars.DataFrame(graph.links)
 
     page_properties = set()
     pages_with_properties = []
@@ -109,16 +112,25 @@ def main() -> None:
             for page, value in pages_with_prop.items()
         ]
 
-    polars.DataFrame(list(page_properties)).write_csv("property.csv", **csv_options)
-    polars.DataFrame(pages_with_properties).write_csv(
-        "page_properties.csv", **csv_options
-    )
+    properties_df = polars.DataFrame(list(page_properties))
+    page_props_df = polars.DataFrame(pages_with_properties)
+
+    page_csv_file = "page.csv"
+    links_csv_file = "links.csv"
+    property_csv_file = "property.csv"
+    page_props_csv_file = "page_properties.csv"
+
+    write_as_csv(pages_df, page_csv_file)
+    write_as_csv(links_df, links_csv_file)
+    write_as_csv(properties_df, property_csv_file)
+    write_as_csv(page_props_df, page_props_csv_file)
 
     conn = create_db()
-    conn.execute('COPY Page from "page.csv"')
-    conn.execute('COPY Links from "links.csv"')
-    conn.execute('COPY Property from "property.csv"')
-    conn.execute('COPY PageHasProperty from "page_properties.csv"')
+    # XXX: Does parameter binding not work for COPY?
+    conn.execute(f'COPY Page from "{page_csv_file}"')
+    conn.execute(f'COPY Links from "{links_csv_file}"')
+    conn.execute(f'COPY Property from "{property_csv_file}"')
+    conn.execute(f'COPY PageHasProperty from "{page_props_csv_file}"')
 
 
 if __name__ == "__main__":

@@ -4,7 +4,7 @@ from pydantic import BaseModel
 
 from .const import logger
 from .line import Line, parse_line
-from .link import GraphLink
+from .link import DirectLink
 from .property import Property, ValueList
 
 
@@ -55,7 +55,7 @@ class Block(BaseModel):
         return self.properties["public"].is_true
 
     @property
-    def links(self) -> list[GraphLink]:
+    def links(self) -> list[DirectLink]:
         """return a list of all graph links found in this block."""
         gathered = []
         in_code = False
