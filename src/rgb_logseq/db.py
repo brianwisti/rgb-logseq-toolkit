@@ -15,6 +15,7 @@ PAGE_SCHEMA = """
     create node table Page(
         name string,
         is_placeholder boolean,
+        is_public boolean,
         primary key (name)
     )
 """
@@ -84,7 +85,11 @@ def main() -> None:
     logger.info("Loaded graph %s; %s pages", graph_name, len(graph.pages))
 
     pages = [
-        {"name": page.name, "is_placeholder": page.is_placeholder}
+        {
+            "name": page.name,
+            "is_placeholder": page.is_placeholder,
+            "is_public": page.is_public,
+        }
         for page in graph.pages.values()
     ]
     polars.DataFrame(pages).write_csv("page.csv", **csv_options)
