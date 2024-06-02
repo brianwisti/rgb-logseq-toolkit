@@ -44,6 +44,12 @@ PAGE_PROPERTIES_SCHEMA = """
 
 PAGE_FOLDERS = ["journals", "pages"]
 PAGE_GLOB = "./**/*.md"
+
+CSV_FILE_PAGE = "page.csv"
+CSV_FILE_LINKS = "links.csv"
+CSV_FILE_PROPERTY = "property.csv"
+CSV_FILE_PAGE_PROPS = "page_properties.csv"
+
 load_dotenv()
 
 
@@ -74,32 +80,25 @@ def load_graph(graph_path: Path) -> Graph:
     return graph
 
 
-def write_as_csv(df: polars.DataFrame, filename: str) -> None:
-    """Write a DataFrame as CSV to the specified file."""
-    df.write_csv(filename, include_header=False, quote_style="non_numeric")
+def populate_database(conn: kuzu.Connection) -> None:
+    """Copy graph info from CSV files to database."""
+    # XXX: Does parameter binding not work for COPY?
+    conn.execute(f'COPY Page from "{CSV_FILE_PAGE}"')
+    conn.execute(f'COPY Links from "{CSV_FILE_LINKS}"')
+    conn.execute(f'COPY Property from "{CSV_FILE_PROPERTY}"')
+    conn.execute(f'COPY PageHasProperty from "{CSV_FILE_PAGE_PROPS}"')
 
 
-def main() -> None:
-    """Do interesting stuff."""
-    graph_path = os.getenv(GRAPH_PATH_ENV)
-    assert graph_path
-
-    pages_path = Path(graph_path).expanduser()
-    graph = load_graph(pages_path)
-    graph_name = pages_path.stem
-    logger.info("Loaded graph %s; %s pages", graph_name, len(graph.pages))
-
-    pages = [
-        {
-            "name": page.name,
-            "is_placeholder": page.is_placeholder,
-            "is_public": page.is_public,
-        }
-        for page in graph.pages.values()
-    ]
-    pages_df = polars.DataFrame(pages)
+def save_graph_links(graph: Graph, filename: str) -> None:
+    """Store direct link info from graph in a CSV file."""
     links_df = polars.DataFrame(graph.links)
+    write_as_csv(links_df, filename)
 
+
+def save_graph_page_props(
+    graph: Graph, prop_filename: str, page_prop_filename: str
+) -> None:
+    """Store page properties from graph in CSV files."""
     page_properties = set()
     pages_with_properties = []
 
@@ -114,23 +113,44 @@ def main() -> None:
 
     properties_df = polars.DataFrame(list(page_properties))
     page_props_df = polars.DataFrame(pages_with_properties)
+    write_as_csv(properties_df, prop_filename)
+    write_as_csv(page_props_df, page_prop_filename)
 
-    page_csv_file = "page.csv"
-    links_csv_file = "links.csv"
-    property_csv_file = "property.csv"
-    page_props_csv_file = "page_properties.csv"
 
-    write_as_csv(pages_df, page_csv_file)
-    write_as_csv(links_df, links_csv_file)
-    write_as_csv(properties_df, property_csv_file)
-    write_as_csv(page_props_df, page_props_csv_file)
+def save_graph_pages(graph: Graph, filename: str) -> None:
+    """Store page info from graph in a CSV file."""
+    pages = [
+        {
+            "name": page.name,
+            "is_placeholder": page.is_placeholder,
+            "is_public": page.is_public,
+        }
+        for page in graph.pages.values()
+    ]
+    pages_df = polars.DataFrame(pages)
+    write_as_csv(pages_df, filename)
+
+
+def write_as_csv(df: polars.DataFrame, filename: str) -> None:
+    """Write a DataFrame as CSV to the specified file."""
+    df.write_csv(filename, include_header=False, quote_style="non_numeric")
+
+
+def main() -> None:
+    """Do interesting stuff."""
+    graph_path = os.getenv(GRAPH_PATH_ENV)
+    assert graph_path
+
+    pages_path = Path(graph_path).expanduser()
+    graph = load_graph(pages_path)
+    logger.info("Loaded graph %s; %s pages", pages_path.stem, len(graph.pages))
+
+    save_graph_pages(graph, CSV_FILE_PAGE)
+    save_graph_links(graph, CSV_FILE_LINKS)
+    save_graph_page_props(graph, CSV_FILE_PROPERTY, CSV_FILE_PAGE_PROPS)
 
     conn = create_db()
-    # XXX: Does parameter binding not work for COPY?
-    conn.execute(f'COPY Page from "{page_csv_file}"')
-    conn.execute(f'COPY Links from "{links_csv_file}"')
-    conn.execute(f'COPY Property from "{property_csv_file}"')
-    conn.execute(f'COPY PageHasProperty from "{page_props_csv_file}"')
+    populate_database(conn)
 
 
 if __name__ == "__main__":
