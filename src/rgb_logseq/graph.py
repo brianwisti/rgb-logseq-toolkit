@@ -6,6 +6,10 @@ from .const import logger
 from .page import Page
 
 
+class DuplicatePageNameError(Exception):
+    """Error raised when overwriting an existing Page in a Graph."""
+
+
 class PropertyInputError(Exception):
     """Error raised when a property string is not in ``key:: value` form."""
 
@@ -27,19 +31,24 @@ class Graph(BaseModel):
             if duplicate.is_placeholder:
                 logger.info("Overwriting placeholder entry: %s", page.name)
             else:
-                logger.warning("Overwriting duplicate named entry: %s", page.name)
+                logger.error("Adding page already in graph: %s", page.name)
+                raise DuplicatePageNameError(page.name)
 
         self.pages[page.name] = page
 
         for link in page.links:
             if link.target not in self.pages:
-                placeholder = Page(
-                    name=link.target,
-                    blocks=[],
-                    properties={},
-                    is_placeholder=True,
-                )
-                self.add_page(placeholder)
+                self.add_placeholder(link.target)
+
+    def add_placeholder(self, page_name: str) -> None:
+        """Remember a Page name without requiring a full Page."""
+        placeholder = Page(
+            name=page_name,
+            blocks=[],
+            properties={},
+            is_placeholder=True,
+        )
+        self.add_page(placeholder)
 
     def has_page(self, page_name: str) -> bool:
         """Return True if a Page with matching name has been added."""
