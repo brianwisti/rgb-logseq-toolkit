@@ -108,6 +108,11 @@ class TestGraphPageProperties:
 
         assert graph.page_properties["public"][public_page.name] == "true"
 
+    def test_placeholder_created_for_property(self, graph, public_page):
+        graph.add_page(public_page)
+
+        assert "public" in graph.pages
+
 
 class TestGraphPageTags:
     def test_empty_by_default(self, graph):

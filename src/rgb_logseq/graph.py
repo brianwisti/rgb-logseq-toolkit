@@ -73,6 +73,10 @@ class Graph(BaseModel):
             if tag not in self.pages:
                 self.add_placeholder(tag)
 
+        for prop in page.properties:
+            if prop not in self.pages:
+                self.add_placeholder(prop)
+
     def add_placeholder(self, page_name: str) -> None:
         """Remember a Page name without requiring a full Page."""
         placeholder = Page(
