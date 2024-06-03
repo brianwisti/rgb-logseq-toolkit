@@ -2,6 +2,7 @@
 
 from pathlib import Path
 import os
+import uuid
 
 from dotenv import load_dotenv
 import kuzu
@@ -36,13 +37,27 @@ create rel table PageHasProperty(
 
 create rel table PageIsTagged(
     from Page to Page
-)
+);
+
+create node table Block(
+    uuid uuid,
+    content string,
+    primary key (uuid)
+);
+
+create rel table InPage(
+    from Block to Page,
+    position uint32,
+    depth uint32
+);
 """
 
 
 PAGE_FOLDERS = ["journals", "pages"]
 PAGE_GLOB = "./**/*.md"
 
+CSV_FILE_BLOCK = "block.csv"
+CSV_FILE_IN_PAGE = "in_page.csv"
 CSV_FILE_LINKS = "links.csv"
 CSV_FILE_IN_NAMESPACE = "in_namespace.csv"
 CSV_FILE_PAGE = "page.csv"
@@ -84,6 +99,38 @@ def populate_database(conn: kuzu.Connection) -> None:
     conn.execute(f'COPY Links from "{CSV_FILE_LINKS}"')
     conn.execute(f'COPY PageHasProperty from "{CSV_FILE_PAGE_PROPS}"')
     conn.execute(f'COPY PageIsTagged from "{CSV_FILE_PAGE_IS_TAGGED}"')
+    conn.execute(f'COPY Block from "{CSV_FILE_BLOCK}"')
+    conn.execute(f'COPY InPage from "{CSV_FILE_IN_PAGE}"')
+
+
+def save_graph_blocks(graph: Graph, block_filename: str, in_page_filename: str) -> None:
+    """Store Blocks and their Page connections in CSV files."""
+    blocks = []
+    in_page = []
+
+    for page_name, page in graph.pages.items():
+        for position, block in enumerate(page.blocks):
+            content = (
+                block.content.replace("\\$", "$")
+                .replace("\\", "\\\\")
+                .replace("\n", "\\\\n")
+                .replace('"', "*")
+            )
+            block_id = str(uuid.uuid4())
+            blocks.append({"uuid": block_id, "content": content})
+            in_page.append(
+                {
+                    "from": block_id,
+                    "to": page_name,
+                    "position": position,
+                    "depth": block.depth,
+                }
+            )
+
+    blocks_df = polars.DataFrame(blocks)
+    in_page_df = polars.DataFrame(in_page)
+    write_as_csv(blocks_df, block_filename)
+    write_as_csv(in_page_df, in_page_filename)
 
 
 def save_graph_links(graph: Graph, filename: str) -> None:
@@ -169,6 +216,7 @@ def main() -> None:
     save_graph_links(graph, CSV_FILE_LINKS)
     save_graph_page_props(graph, CSV_FILE_PAGE_PROPS)
     save_graph_page_tags(graph, CSV_FILE_PAGE_IS_TAGGED)
+    save_graph_blocks(graph, CSV_FILE_BLOCK, CSV_FILE_IN_PAGE)
 
     conn = create_db()
     populate_database(conn)
