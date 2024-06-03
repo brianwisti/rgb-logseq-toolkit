@@ -9,7 +9,7 @@ import polars
 
 from .const import logger
 from .graph import Graph
-from .page import load_page_file
+from .page import NAMESPACE_SELF, load_page_file
 
 DB_NAME = "graph_db"
 GRAPH_PATH_ENV = "GRAPH_PATH"
@@ -19,6 +19,10 @@ create node table Page(
     is_placeholder boolean,
     is_public boolean,
     primary key (name)
+);
+
+create rel table InNamespace(
+    from Page to Page
 );
 
 create rel table Links(
@@ -39,8 +43,9 @@ create rel table PageIsTagged(
 PAGE_FOLDERS = ["journals", "pages"]
 PAGE_GLOB = "./**/*.md"
 
-CSV_FILE_PAGE = "page.csv"
 CSV_FILE_LINKS = "links.csv"
+CSV_FILE_IN_NAMESPACE = "in_namespace.csv"
+CSV_FILE_PAGE = "page.csv"
 CSV_FILE_PAGE_PROPS = "page_properties.csv"
 CSV_FILE_PAGE_IS_TAGGED = "page_is_tagged.csv"
 
@@ -75,6 +80,7 @@ def populate_database(conn: kuzu.Connection) -> None:
     """Copy graph info from CSV files to database."""
     # XXX: Does parameter binding not work for COPY?
     conn.execute(f'COPY Page from "{CSV_FILE_PAGE}"')
+    conn.execute(f'COPY InNamespace from "{CSV_FILE_IN_NAMESPACE}"')
     conn.execute(f'COPY Links from "{CSV_FILE_LINKS}"')
     conn.execute(f'COPY PageHasProperty from "{CSV_FILE_PAGE_PROPS}"')
     conn.execute(f'COPY PageIsTagged from "{CSV_FILE_PAGE_IS_TAGGED}"')
@@ -100,6 +106,21 @@ def save_graph_page_props(graph: Graph, page_prop_filename: str) -> None:
 
     page_props_df = polars.DataFrame(pages_with_properties)
     write_as_csv(page_props_df, page_prop_filename)
+
+
+def save_graph_namespaces(graph: Graph, filename: str) -> None:
+    """Store page namespaces from graph in a CSV file."""
+    namespaces = []
+
+    for page in graph.pages.values():
+        if page.namespace == NAMESPACE_SELF:
+            continue
+
+        info = {"from": page.name, "to": page.namespace}
+        namespaces.append(info)
+
+    namespaces_df = polars.DataFrame(namespaces)
+    write_as_csv(namespaces_df, filename)
 
 
 def save_graph_page_tags(graph: Graph, filename: str) -> None:
@@ -144,6 +165,7 @@ def main() -> None:
     logger.info("Loaded graph %s; %s pages", pages_path.stem, len(graph.pages))
 
     save_graph_pages(graph, CSV_FILE_PAGE)
+    save_graph_namespaces(graph, CSV_FILE_IN_NAMESPACE)
     save_graph_links(graph, CSV_FILE_LINKS)
     save_graph_page_props(graph, CSV_FILE_PAGE_PROPS)
     save_graph_page_tags(graph, CSV_FILE_PAGE_IS_TAGGED)
