@@ -13,34 +13,29 @@ from .page import load_page_file
 
 DB_NAME = "graph_db"
 GRAPH_PATH_ENV = "GRAPH_PATH"
-PAGE_SCHEMA = """
-    create node table Page(
-        name string,
-        is_placeholder boolean,
-        is_public boolean,
-        primary key (name)
-    )
+DB_SCHEMA = """
+create node table Page(
+    name string,
+    is_placeholder boolean,
+    is_public boolean,
+    primary key (name)
+);
+
+create node table Property(
+    name string,
+    primary key(name)
+);
+
+create rel table Links(
+    from Page to Page
+);
+
+create rel table PageHasProperty(
+    from Page to Property,
+    value string
+);
 """
 
-PROPERTY_SCHEMA = """
-    create node table Property(
-        name string,
-        primary key(name)
-    )
-"""
-
-LINKS_SCHEMA = """
-    create rel table Links(
-        from Page to Page
-    )
-"""
-
-PAGE_PROPERTIES_SCHEMA = """
-    create rel table PageHasProperty(
-        from Page to Property,
-        value string
-    )
-"""
 
 PAGE_FOLDERS = ["journals", "pages"]
 PAGE_GLOB = "./**/*.md"
@@ -56,10 +51,7 @@ load_dotenv()
 def create_db() -> kuzu.Connection:
     db = kuzu.Database(DB_NAME)
     conn = kuzu.Connection(db)
-    conn.execute(PAGE_SCHEMA)
-    conn.execute(LINKS_SCHEMA)
-    conn.execute(PROPERTY_SCHEMA)
-    conn.execute(PAGE_PROPERTIES_SCHEMA)
+    conn.execute(DB_SCHEMA)
 
     return conn
 
