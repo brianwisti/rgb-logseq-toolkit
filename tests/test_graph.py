@@ -126,3 +126,10 @@ class TestGraphPageTags:
         for tag in page_with_tags.tags:
             assert page_tags[tag]
             assert page_with_tags.name in page_tags[tag]
+
+    def test_placeholders_created_for_tags(self, graph, page_with_tags):
+        graph.add_page(page_with_tags)
+        pages = graph.pages
+
+        for tag in page_with_tags.tags:
+            assert tag in pages

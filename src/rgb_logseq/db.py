@@ -34,6 +34,10 @@ create rel table PageHasProperty(
     from Page to Property,
     value string
 );
+
+create rel table PageIsTagged(
+    from Page to Page
+)
 """
 
 
@@ -44,6 +48,7 @@ CSV_FILE_PAGE = "page.csv"
 CSV_FILE_LINKS = "links.csv"
 CSV_FILE_PROPERTY = "property.csv"
 CSV_FILE_PAGE_PROPS = "page_properties.csv"
+CSV_FILE_PAGE_IS_TAGGED = "page_is_tagged.csv"
 
 load_dotenv()
 
@@ -79,6 +84,7 @@ def populate_database(conn: kuzu.Connection) -> None:
     conn.execute(f'COPY Links from "{CSV_FILE_LINKS}"')
     conn.execute(f'COPY Property from "{CSV_FILE_PROPERTY}"')
     conn.execute(f'COPY PageHasProperty from "{CSV_FILE_PAGE_PROPS}"')
+    conn.execute(f'COPY PageIsTagged from "{CSV_FILE_PAGE_IS_TAGGED}"')
 
 
 def save_graph_links(graph: Graph, filename: str) -> None:
@@ -107,6 +113,19 @@ def save_graph_page_props(
     page_props_df = polars.DataFrame(pages_with_properties)
     write_as_csv(properties_df, prop_filename)
     write_as_csv(page_props_df, page_prop_filename)
+
+
+def save_graph_page_tags(graph: Graph, filename: str) -> None:
+    """Store page tags from graph in a CSV file."""
+    page_tags = []
+
+    for tag, pages_with_tags in graph.page_tags.items():
+        for page in pages_with_tags:
+            info = {"from": page, "to": tag}
+            page_tags.append(info)
+
+    page_tags_df = polars.DataFrame(page_tags)
+    write_as_csv(page_tags_df, filename)
 
 
 def save_graph_pages(graph: Graph, filename: str) -> None:
@@ -140,6 +159,7 @@ def main() -> None:
     save_graph_pages(graph, CSV_FILE_PAGE)
     save_graph_links(graph, CSV_FILE_LINKS)
     save_graph_page_props(graph, CSV_FILE_PROPERTY, CSV_FILE_PAGE_PROPS)
+    save_graph_page_tags(graph, CSV_FILE_PAGE_IS_TAGGED)
 
     conn = create_db()
     populate_database(conn)

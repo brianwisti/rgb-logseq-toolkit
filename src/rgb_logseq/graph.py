@@ -69,6 +69,10 @@ class Graph(BaseModel):
             if link.target not in self.pages:
                 self.add_placeholder(link.target)
 
+        for tag in page.tags:
+            if tag not in self.pages:
+                self.add_placeholder(tag)
+
     def add_placeholder(self, page_name: str) -> None:
         """Remember a Page name without requiring a full Page."""
         placeholder = Page(
