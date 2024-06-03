@@ -3,7 +3,7 @@
 from pydantic import BaseModel
 
 from .const import logger
-from .page import Page
+from .page import NAMESPACE_SELF, Page
 
 
 class DuplicatePageNameError(Exception):
@@ -58,12 +58,15 @@ class Graph(BaseModel):
 
         if duplicate := self.pages.get(page.name):
             if duplicate.is_placeholder:
-                logger.info("Overwriting placeholder entry: %s", page.name)
+                logger.debug("Overwriting placeholder entry: %s", page.name)
             else:
                 logger.error("Adding page already in graph: %s", page.name)
                 raise DuplicatePageNameError(page.name)
 
         self.pages[page.name] = page
+
+        if page.namespace != NAMESPACE_SELF and page.namespace not in self.pages:
+            self.add_placeholder(page.namespace)
 
         for link in page.links:
             if link.target not in self.pages:

@@ -1,8 +1,10 @@
 """Test handling complete Logseq graphs."""
 
 import pytest
+from pathlib import Path
 
 from rgb_logseq.graph import DuplicatePageNameError, Graph
+from rgb_logseq.page import NAMESPACE_SELF, Page
 
 
 @pytest.fixture
@@ -138,3 +140,18 @@ class TestGraphPageTags:
 
         for tag in page_with_tags.tags:
             assert tag in pages
+
+
+class TestGraphPageNamespaces:
+    def test_page_created_for_namespace(self, graph: Graph, page_in_namespace: Page):
+        graph.add_page(page_in_namespace)
+
+        assert page_in_namespace.namespace in graph.pages
+
+    def test_recursive_namespace_pages(self, graph: Graph, page_in_namespace: Page):
+        graph.add_page(page_in_namespace)
+        namespace = Path(page_in_namespace.namespace)
+
+        while str(namespace) != NAMESPACE_SELF:
+            assert str(namespace) in graph.pages
+            namespace = namespace.parent

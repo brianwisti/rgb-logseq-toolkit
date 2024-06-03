@@ -130,8 +130,22 @@ def line_with_link(graph_link: DirectLink) -> tuple[line.Line, DirectLink]:
 
 
 @pytest.fixture
+def namespace(faker: Faker, range_cap: int) -> str:
+    """Return a namespace path string."""
+    return "/".join([faker.unique.word() for _ in range(range_cap)])
+
+
+@pytest.fixture
 def page(branch_block: Block, faker: Faker) -> Page:
     return parse_page_text(branch_block.raw, name=generate_page_name(faker))
+
+
+@pytest.fixture
+def page_in_namespace(page: Page, namespace: str) -> Page:
+    """Return a Page that belongs in a namespace hierarchy."""
+    page.name = namespace
+
+    return page
 
 
 @pytest.fixture
