@@ -39,6 +39,19 @@ class Graph(BaseModel):
 
         return properties
 
+    @property
+    def page_tags(self) -> dict[str, list[str]]:
+        """Return information about all tags in the graph."""
+        tags: dict[str, list[str]] = {}
+
+        for page_name, page in self.pages.items():
+            for tag in page.tags:
+                page_list = tags.get(tag, [])
+                page_list.append(page_name)
+                tags[tag] = page_list
+
+        return tags
+
     def add_page(self, page: Page) -> None:
         """Add a Page to the Graph."""
         logger.info("Adding page to graph: %s", page.name)

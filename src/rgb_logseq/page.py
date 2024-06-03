@@ -39,8 +39,8 @@ class Page(BaseModel):
         if "tags" not in self.properties:
             return []
 
-        tag_prop = str(self.properties["tags"])
-        return [tag.strip() for tag in tag_prop.split(",")]
+        tag_prop = self.properties["tags"]
+        return [tag.strip() for tag in tag_prop.value.split(",")]
 
     def add_block(self, block: Block) -> None:
         """Add a Block to the end of this Page."""

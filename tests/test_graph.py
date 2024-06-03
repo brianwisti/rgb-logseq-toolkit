@@ -107,3 +107,22 @@ class TestGraphPageProperties:
         graph.add_page(public_page)
 
         assert graph.page_properties["public"][public_page.name] == "true"
+
+
+class TestGraphPageTags:
+    def test_empty_by_default(self, graph):
+        assert not graph.page_tags
+
+    def test_page_tags_recorded(self, graph, page_with_tags):
+        graph.add_page(page_with_tags)
+        tags_found = [tag for tag in graph.page_tags if tag in page_with_tags.tags]
+
+        assert len(tags_found) == len(page_with_tags.tags)
+
+    def test_page_names_returned_with_tags(self, graph, page_with_tags):
+        graph.add_page(page_with_tags)
+        page_tags = graph.page_tags
+
+        for tag in page_with_tags.tags:
+            assert page_tags[tag]
+            assert page_with_tags.name in page_tags[tag]

@@ -15,26 +15,26 @@ def spongebob_case(text: str):
 
 
 class TestIsTrue:
-    def test_default_is_not_truthy(self, scalar_property):
-        assert not scalar_property.is_true
+    def test_default_is_not_truthy(self, prop_scalar):
+        assert not prop_scalar.is_true
 
     @pytest.mark.parametrize("value", TRUE_VALUES)
-    def test_when_truthy(self, scalar_property, value):
-        scalar_property.value = value
+    def test_when_truthy(self, prop_scalar, value):
+        prop_scalar.value = value
 
-        assert scalar_property.is_true
+        assert prop_scalar.is_true
 
     @pytest.mark.parametrize("value", TRUE_VALUES)
-    def test_case_insensitive(self, scalar_property, value):
-        scalar_property.value = spongebob_case(value)
+    def test_case_insensitive(self, prop_scalar, value):
+        prop_scalar.value = spongebob_case(value)
 
-        assert scalar_property.is_true
+        assert prop_scalar.is_true
 
 
 class TestProperty:
-    def test_loads(self, scalar_property):
-        prop = Property.loads(scalar_property.raw)
-        assert prop == scalar_property
+    def test_loads(self, prop_scalar):
+        prop = Property.loads(prop_scalar.raw)
+        assert prop == prop_scalar
 
     @pytest.mark.parametrize(
         "value,expected",
@@ -46,7 +46,7 @@ class TestProperty:
             ("a,b,b", ["a", "b", "b"]),  # want a list not a set!
         ],
     )
-    def test_as_list(self, scalar_property, value, expected):
-        scalar_property.value = value
+    def test_as_list(self, prop_scalar, value, expected):
+        prop_scalar.value = value
 
-        assert scalar_property.as_list() == expected
+        assert prop_scalar.as_list() == expected

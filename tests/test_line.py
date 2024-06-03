@@ -63,26 +63,26 @@ class TestParseLine:
 
 
 class TestPropertyLine:
-    def test_property_line_parsed(self, scalar_property):
-        line = parse_line(scalar_property.raw)
+    def test_property_line_parsed(self, prop_scalar):
+        line = parse_line(prop_scalar.raw)
 
         assert not line.is_content
         assert line.is_property
 
-    def test_parsed_property_attributes(self, scalar_property):
-        line = parse_line(scalar_property.raw)
+    def test_parsed_property_attributes(self, prop_scalar):
+        line = parse_line(prop_scalar.raw)
         prop = line.as_property()
 
-        assert prop.raw == scalar_property.raw
-        assert prop.field == scalar_property.field
-        assert prop.value == scalar_property.value
+        assert prop.raw == prop_scalar.raw
+        assert prop.field == prop_scalar.field
+        assert prop.value == prop_scalar.value
 
-    def test_branch_block_property_line_parsed(self, scalar_property):
-        property_line = as_branch_continuation(scalar_property.raw)
+    def test_branch_block_property_line_parsed(self, prop_scalar):
+        property_line = as_branch_continuation(prop_scalar.raw)
         line = parse_line(property_line)
 
         assert line.is_property
-        assert line.as_property().field == scalar_property.field
+        assert line.as_property().field == prop_scalar.field
 
     def test_branch_block_code_fence_parsed(self, code_fence):
         text_line = as_branch_block(code_fence)
@@ -90,8 +90,8 @@ class TestPropertyLine:
 
         assert line.is_code_fence
 
-    def test_property_in_code_fence_ignored(self, code_fence, scalar_property):
-        text_line = as_branch_block(f"{code_fence} {scalar_property.raw}")
+    def test_property_in_code_fence_ignored(self, code_fence, prop_scalar):
+        text_line = as_branch_block(f"{code_fence} {prop_scalar.raw}")
         line = parse_line(text_line)
 
         assert line.is_code_fence

@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 
 from rgb_logseq.page import load_page_file, parse_page_text
+from rgb_logseq.property import Property
 
 from .conftest import as_branch_block
 
@@ -34,14 +35,14 @@ class TestPageLoads:
 
         assert page.blocks
 
-    def test_page_uses_root_properties(self, scalar_property, page_name):
-        text = scalar_property.raw
+    def test_page_uses_root_properties(self, prop_scalar, page_name):
+        text = prop_scalar.raw
         page = parse_page_text(text, name=page_name)
 
-        assert page.properties[scalar_property.field] == scalar_property
+        assert page.properties[prop_scalar.field] == prop_scalar
 
-    def test_page_ignores_branch_properties(self, scalar_property, page_name):
-        text = as_branch_block(scalar_property.raw)
+    def test_page_ignores_branch_properties(self, prop_scalar, page_name):
+        text = as_branch_block(prop_scalar.raw)
         page = parse_page_text(text, name=page_name)
 
         assert not page.properties
@@ -53,8 +54,8 @@ class TestPageLoads:
 
 
 class TestPage:
-    def test_is_public(self, public_prop, page_name):
-        page = parse_page_text(public_prop.raw, name=page_name)
+    def test_is_public(self, prop_public, page_name):
+        page = parse_page_text(prop_public.raw, name=page_name)
 
         assert page.is_public
 
@@ -87,7 +88,7 @@ class TestPageTags:
         [("a", ("a",)), ("a,b", ("a", "b")), ("a, b", ("a", "b"))],
     )
     def test_with_tags_prop(self, page, tag_prop, tags):
-        page.properties["tags"] = tag_prop
+        page.properties["tags"] = Property.loads(f"tags:: {tag_prop}")
         page_tags = page.tags
         found = [tag for tag in tags if tag in page_tags]
 

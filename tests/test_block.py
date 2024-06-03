@@ -101,30 +101,26 @@ class TestBlockFromLines:
         with pytest.raises(ValueError):
             _ = from_lines(multiline_block_lines)
 
-    def test_block_property(self, scalar_property):
-        line = parse_line(scalar_property.raw)
+    def test_block_property(self, prop_scalar):
+        line = parse_line(prop_scalar.raw)
         block = from_lines([line])
 
-        assert block.properties[scalar_property.field] == scalar_property
+        assert block.properties[prop_scalar.field] == prop_scalar
 
-    def test_block_property_without_property_line(
-        self, root_block_line, scalar_property
-    ):
+    def test_block_property_without_property_line(self, root_block_line, prop_scalar):
         block = from_lines([root_block_line])
 
-        assert scalar_property.field not in block.properties
+        assert prop_scalar.field not in block.properties
 
-    def test_multiline_block_with_property(
-        self, multiline_block_lines, scalar_property
-    ):
-        property_line = parse_line(f"  {scalar_property.raw}")
+    def test_multiline_block_with_property(self, multiline_block_lines, prop_scalar):
+        property_line = parse_line(f"  {prop_scalar.raw}")
         all_lines = [property_line] + multiline_block_lines
         block = from_lines(all_lines)
 
-        assert block.properties[scalar_property.field].value == scalar_property.value
+        assert block.properties[prop_scalar.field].value == prop_scalar.value
 
-    def test_property_not_in_block_content(self, root_block_line, scalar_property):
-        property_line = parse_line(scalar_property.raw)
+    def test_property_not_in_block_content(self, root_block_line, prop_scalar):
+        property_line = parse_line(prop_scalar.raw)
         all_lines = [property_line, root_block_line]
         block = from_lines(all_lines)
 
@@ -181,15 +177,15 @@ class TestCodeBlock:
         with pytest.raises(ValueError):
             _ = from_lines(parse_lines(text_lines))
 
-    def test_properties_in_code_blocks_are_ignored(self, scalar_property):
+    def test_properties_in_code_blocks_are_ignored(self, prop_scalar):
         text_lines = [
             "- ```",
-            f"  {scalar_property.raw}",
+            f"  {prop_scalar.raw}",
             "  ```",
         ]
         block = from_lines(parse_lines(text_lines))
 
-        assert scalar_property.field not in block.properties
+        assert prop_scalar.field not in block.properties
 
     def test_links_in_code_blocks_are_ignored(self):
         text_lines = [

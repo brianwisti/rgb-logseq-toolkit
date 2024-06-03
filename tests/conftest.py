@@ -135,8 +135,15 @@ def page(branch_block: Block, faker: Faker) -> Page:
 
 
 @pytest.fixture
-def public_page(public_prop: Property, page_name: str) -> Page:
-    return parse_page_text(public_prop.raw, name=page_name)
+def page_with_tags(page: Page, prop_tags: Property) -> Page:
+    """Return a Page with tags."""
+    page.properties["tags"] = prop_tags
+    return page
+
+
+@pytest.fixture
+def public_page(prop_public: Property, page_name: str) -> Page:
+    return parse_page_text(prop_public.raw, name=page_name)
 
 
 @pytest.fixture
@@ -199,7 +206,7 @@ def branch_block_line(text_line: str) -> line.Line:
 
 
 @pytest.fixture
-def scalar_property(faker: Faker) -> Property:
+def prop_scalar(faker: Faker) -> Property:
     """Return a Property with a single string value."""
     field = faker.word()
     value = faker.word()
@@ -208,8 +215,16 @@ def scalar_property(faker: Faker) -> Property:
 
 
 @pytest.fixture
-def public_prop() -> Property:
+def prop_public() -> Property:
     return Property.loads("public:: true")
+
+
+@pytest.fixture
+def prop_tags(faker: Faker, range_cap: int) -> Property:
+    """Return a tags Property with a comma-separated list of tags."""
+    tags = ",".join([faker.unique.word() for _ in range(range_cap)])
+
+    return Property.loads(f"tags:: {tags}")
 
 
 @pytest.fixture
