@@ -9,6 +9,8 @@ from .const import logger
 from .link import DirectLink
 from .property import Property
 
+NAMESPACE_SELF = "."
+
 
 class Page(BaseModel):
     """A full Logseq page."""
@@ -32,6 +34,24 @@ class Page(BaseModel):
     def links(self) -> list[DirectLink]:
         """Return all DirectLink objects found in this Page."""
         return [link for block in self.blocks for link in block.links]
+
+    @property
+    def namespace(self) -> str:
+        """
+        Return name of parent page in namespace hierarchy.
+
+        We derive the namespace parent from the Page name when treated as a
+        Path object. If there is no parent, this returns ``NAMESPACE_SELF``.
+        It's an awkward special case, but is at least more consistent than
+        returning None for no parent. It also leaves room for definining an
+        ad hoc root page in the graph later.
+
+        .. note::
+
+          This behavior probably needs to be double-checked in Windows, though
+          Windows handles UNIX-style path separators just fine these days.
+        """
+        return str(Path(self.name).parent)
 
     @property
     def tags(self) -> list[str]:

@@ -3,8 +3,9 @@
 from pathlib import Path
 
 import pytest
+from faker import Faker
 
-from rgb_logseq.page import load_page_file, parse_page_text
+from rgb_logseq.page import NAMESPACE_SELF, Page, load_page_file, parse_page_text
 from rgb_logseq.property import Property
 
 from .conftest import as_branch_block
@@ -54,13 +55,6 @@ class TestPageLoads:
 
 
 class TestPage:
-    def test_is_public(self, prop_public, page_name):
-        page = parse_page_text(prop_public.raw, name=page_name)
-
-        assert page.is_public
-
-
-class TestPageLoad:
     def test_load(self, page_path):
         page = load_page_file(page_path)
 
@@ -68,8 +62,11 @@ class TestPageLoad:
         assert page.blocks
         assert not page.is_public
 
+    def test_is_public(self, prop_public, page_name):
+        page = parse_page_text(prop_public.raw, name=page_name)
 
-class TestPageLinks:
+        assert page.is_public
+
     def test_listing_links(self, line_with_link):
         line, link = line_with_link
         text_line = line.raw
@@ -77,6 +74,17 @@ class TestPageLinks:
         targets = [link.target for link in page.links]
 
         assert link.target in targets
+
+    def test_no_namespace_by_default(self, page: Page):
+        assert page.namespace == NAMESPACE_SELF
+
+    def test_namespaces(self, page: Page, faker: Faker, range_cap: int):
+        steps = [faker.unique.word() for _ in range(range_cap)]
+        full_namespace = "/".join(steps)
+        parent = "/".join(steps[:-1])
+        page.name = full_namespace
+
+        assert page.namespace == parent
 
 
 class TestPageTags:
