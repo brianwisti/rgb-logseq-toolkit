@@ -54,7 +54,7 @@ class Graph(BaseModel):
 
     def add_page(self, page: Page) -> None:
         """Add a Page to the Graph."""
-        logger.info("Adding page to graph: %s", page.name)
+        logger.debug("Adding page to graph: %s", page.name)
 
         if duplicate := self.pages.get(page.name):
             if duplicate.is_placeholder:

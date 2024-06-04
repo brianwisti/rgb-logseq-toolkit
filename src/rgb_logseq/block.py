@@ -78,7 +78,7 @@ class Block(BaseModel):
         with a logged warning.
         """
         if ATX_HEADER.match(self.content):
-            logger.warning("ATX Header in block: %s", self.content)
+            logger.debug("ATX Header in block: %s", self.content)
             return True
 
         if "heading" not in self.properties:

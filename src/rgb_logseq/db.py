@@ -44,7 +44,7 @@ def create_db(db_name: str, schema_path: Path) -> kuzu.Connection:
 
 def load_graph(graph_path: Path) -> Graph:
     """Load pages in Graph."""
-    logger.info("path: %s", graph_path)
+    logger.debug("path: %s", graph_path)
     page_folders = ["journals", "pages"]
     page_glob = "./**/*.md"
     graph = Graph()
