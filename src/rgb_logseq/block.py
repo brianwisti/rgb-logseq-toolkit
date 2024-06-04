@@ -1,8 +1,9 @@
 """Loading and processing Logseq blocks."""
 
 import re
+import uuid
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from .const import logger
 from .line import Line, parse_line
@@ -31,6 +32,7 @@ class BlockDepthError(Exception):
 class Block(BaseModel):
     """A single block of a Logseq page."""
 
+    generated_id: str = Field(default_factory=lambda: uuid.uuid4().hex)
     lines: list[Line]
     properties: dict[str, Property]
     has_code_block: bool
@@ -47,6 +49,19 @@ class Block(BaseModel):
     def depth(self) -> int:
         """Return the tree depth of this block."""
         return self.lines[0].depth
+
+    @property
+    def id(self) -> str:
+        """
+        Return this Block's unique ID.
+
+        If there's an ``id`` property for this block, use that. Otherwise
+        use the object's generated ID.
+        """
+        if "id" in self.properties:
+            return self.properties["id"].value
+
+        return self.generated_id
 
     @property
     def is_directive(self) -> bool:

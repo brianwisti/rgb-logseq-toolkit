@@ -2,7 +2,6 @@
 
 from pathlib import Path
 import os
-import uuid
 
 from dotenv import load_dotenv
 import kuzu
@@ -118,10 +117,9 @@ def save_graph_blocks(graph: Graph, block_filename: str, in_page_filename: str) 
                 .replace("\n", "\\\\n")
                 .replace('"', "*")
             )
-            block_id = str(uuid.uuid4())
             blocks.append(
                 {
-                    "uuid": block_id,
+                    "uuid": block.id,
                     "content": content,
                     "is_heading": block.is_heading,
                     "directive": block.directive,
@@ -129,7 +127,7 @@ def save_graph_blocks(graph: Graph, block_filename: str, in_page_filename: str) 
             )
             in_page.append(
                 {
-                    "from": block_id,
+                    "from": block.id,
                     "to": page_name,
                     "position": position,
                     "depth": block.depth,

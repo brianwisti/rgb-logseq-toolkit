@@ -21,6 +21,7 @@ class TestBlock:
 
         assert root_block_line in block.lines
 
+        assert block.id
         assert block.raw == root_block_line.raw
         assert block.content == root_block_line.content
         assert block.depth == 0
@@ -28,6 +29,19 @@ class TestBlock:
         assert not block.is_public
         assert not block.tags
         assert not block.is_directive
+
+    def test_block_id_is_unique(self, root_block_line):
+        block_a = from_lines([root_block_line])
+        block_b = from_lines([root_block_line])
+
+        assert block_a.id != block_b.id
+
+    def test_block_id_from_props(self, root_block_line, faker):
+        id_prop = faker.uuid4()
+        id_prop_line = Line(raw=f"id:: {id_prop}")
+        block = from_lines([id_prop_line, root_block_line])
+
+        assert block.id == id_prop
 
 
 class TestFindBlocks:
