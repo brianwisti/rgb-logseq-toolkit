@@ -42,6 +42,7 @@ create rel table PageIsTagged(
 create node table Block(
     uuid uuid,
     content string,
+    is_heading bool,
     primary key (uuid)
 );
 
@@ -117,7 +118,9 @@ def save_graph_blocks(graph: Graph, block_filename: str, in_page_filename: str) 
                 .replace('"', "*")
             )
             block_id = str(uuid.uuid4())
-            blocks.append({"uuid": block_id, "content": content})
+            blocks.append(
+                {"uuid": block_id, "content": content, "is_heading": block.is_heading}
+            )
             in_page.append(
                 {
                     "from": block_id,
