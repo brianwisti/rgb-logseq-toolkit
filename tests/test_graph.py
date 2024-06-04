@@ -29,10 +29,17 @@ class TestGraphPageManagement:
 
         assert graph.has_page(page.name)
 
-    def test_adding_placeholder_pages(self, graph, page_name):
+    def test_adding_placeholder_page(self, graph, page_name):
         graph.add_placeholder(page_name)
 
         assert graph.has_page(page_name)
+
+    def test_adding_multiple_placeholders(self, graph, page, another_page):
+        pages = [page.name, another_page.name]
+        graph.add_placeholders(pages)
+
+        assert page.name in graph.pages
+        assert another_page.name in graph.pages
 
     def test_placeholder_links_are_flagged(self, graph, page_name):
         graph.add_placeholder(page_name)
@@ -89,6 +96,13 @@ class TestDirectLinksInGraph:
             for link in graph.links
             if link["from"] == link_source.name and link["to"] == link_target.name
         )
+
+
+class TestGraphBlockProperties:
+    def test_placeholders_created_for_block_props(self, graph, page_with_heading):
+        graph.add_page(page_with_heading)
+
+        assert "heading" in graph.pages
 
 
 class TestGraphPageProperties:

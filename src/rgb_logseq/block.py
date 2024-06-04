@@ -59,7 +59,7 @@ class Block(BaseModel):
         use the object's generated ID.
         """
         if "id" in self.properties:
-            return self.properties["id"].value
+            return self.properties["id"].value.replace("-", "")
 
         return self.generated_id
 

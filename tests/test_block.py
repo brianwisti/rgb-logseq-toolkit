@@ -41,7 +41,7 @@ class TestBlock:
         id_prop_line = Line(raw=f"id:: {id_prop}")
         block = from_lines([id_prop_line, root_block_line])
 
-        assert block.id == id_prop
+        assert block.id == id_prop.replace("-", "")
 
 
 class TestFindBlocks:

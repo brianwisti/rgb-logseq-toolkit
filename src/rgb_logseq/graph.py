@@ -68,17 +68,26 @@ class Graph(BaseModel):
         if page.namespace != NAMESPACE_SELF and page.namespace not in self.pages:
             self.add_placeholder(page.namespace)
 
-        for link in page.links:
-            if link.target not in self.pages:
-                self.add_placeholder(link.target)
+        missing_links = [
+            link.target for link in page.links if link.target not in self.pages
+        ]
+        self.add_placeholders(missing_links)
 
-        for tag in page.tags:
-            if tag not in self.pages:
-                self.add_placeholder(tag)
+        missing_tags = [tag for tag in page.tags if tag not in self.pages]
+        self.add_placeholders(missing_tags)
 
-        for prop in page.properties:
-            if prop not in self.pages:
-                self.add_placeholder(prop)
+        missing_page_props = [
+            prop for prop in page.properties if prop not in self.pages
+        ]
+        self.add_placeholders(missing_page_props)
+
+        for block in page.blocks:
+            missing_props = [
+                block_prop
+                for block_prop in block.properties
+                if block_prop not in self.pages
+            ]
+            self.add_placeholders(missing_props)
 
     def add_placeholder(self, page_name: str) -> None:
         """Remember a Page name without requiring a full Page."""
@@ -89,6 +98,11 @@ class Graph(BaseModel):
             is_placeholder=True,
         )
         self.add_page(placeholder)
+
+    def add_placeholders(self, page_names: list[str]) -> None:
+        """Add placeholder for each name in the provided list."""
+        for page_name in page_names:
+            self.add_placeholder(page_name)
 
     def has_page(self, page_name: str) -> bool:
         """Return True if a Page with matching name has been added."""

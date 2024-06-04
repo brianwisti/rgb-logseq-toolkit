@@ -149,6 +149,20 @@ def page_in_namespace(page: Page, namespace: str) -> Page:
 
 
 @pytest.fixture
+def page_with_heading(faker: Faker) -> Page:
+    """Return a Page with a heading block."""
+    heading_text = faker.sentence()
+    heading_block = "\n".join(
+        [
+            f"- {heading_text}",
+            "  heading:: true",
+        ]
+    )
+
+    return parse_page_text(heading_block, name=generate_page_name(faker))
+
+
+@pytest.fixture
 def page_with_tags(page: Page, prop_tags: Property) -> Page:
     """Return a Page with tags."""
     page.properties["tags"] = prop_tags
