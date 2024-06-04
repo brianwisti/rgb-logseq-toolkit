@@ -11,53 +11,10 @@ from .const import logger
 from .graph import Graph
 from .page import NAMESPACE_SELF, load_page_file
 
-DB_NAME = "graph_db"
 GRAPH_PATH_ENV = "GRAPH_PATH"
-DB_SCHEMA = """
-create node table Page(
-    name string,
-    is_placeholder boolean,
-    is_public boolean,
-    primary key (name)
-);
 
-create rel table InNamespace(
-    from Page to Page
-);
-
-create rel table Links(
-    from Page to Page
-);
-
-create rel table PageHasProperty(
-    from Page to Page,
-    value string
-);
-
-create rel table PageIsTagged(
-    from Page to Page
-);
-
-create node table Block(
-    uuid uuid,
-    content string,
-    is_heading bool,
-    directive string,
-    primary key (uuid)
-);
-
-create rel table InPage(
-    from Block to Page,
-    position uint32,
-    depth uint32
-);
-
-create rel table BlockHasProperty(
-    from Block to Page,
-    value string
-);
-"""
-
+DB_NAME = "graph_db"
+DB_SCHEMA_PATH = Path("etc/schema.cypher")
 
 PAGE_FOLDERS = ["journals", "pages"]
 PAGE_GLOB = "./**/*.md"
@@ -74,10 +31,12 @@ CSV_FILE_PAGE_IS_TAGGED = "page_is_tagged.csv"
 load_dotenv()
 
 
-def create_db() -> kuzu.Connection:
-    db = kuzu.Database(DB_NAME)
+def create_db(db_name: str, schema_path: Path) -> kuzu.Connection:
+    """Create the database for our Logseq graph and return a connection."""
+    db = kuzu.Database(db_name)
     conn = kuzu.Connection(db)
-    conn.execute(DB_SCHEMA)
+    schema = schema_path.read_text(encoding="utf-8")
+    conn.execute(schema)
 
     return conn
 
@@ -252,7 +211,7 @@ def main() -> None:
         graph, CSV_FILE_BLOCK, CSV_FILE_IN_PAGE, CSV_FILE_BLOCK_HAS_PROPERTY
     )
 
-    conn = create_db()
+    conn = create_db(DB_NAME, DB_SCHEMA_PATH)
     populate_database(conn)
 
 
