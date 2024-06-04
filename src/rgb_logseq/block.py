@@ -3,7 +3,7 @@
 import re
 import uuid
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, computed_field
 
 from .const import logger
 from .line import Line, parse_line
@@ -36,9 +36,9 @@ class Block(BaseModel):
     lines: list[Line]
     properties: dict[str, Property]
     has_code_block: bool
-    directive: str | None = None
+    directive: str = ""
 
-    @property
+    @computed_field
     def content(self) -> str:
         """Return the renderable content of lines as newline-separated string."""
         return "\n".join(
@@ -50,7 +50,7 @@ class Block(BaseModel):
         """Return the tree depth of this block."""
         return self.lines[0].depth
 
-    @property
+    @computed_field
     def id(self) -> str:
         """
         Return this Block's unique ID.
@@ -68,7 +68,7 @@ class Block(BaseModel):
         """Return true if this Block is a Logseq directive."""
         return bool(self.directive)
 
-    @property
+    @computed_field
     def is_heading(self) -> bool:
         """
         Return True if this Block marks a page section heading.
@@ -77,7 +77,7 @@ class Block(BaseModel):
         inconsistent in my own graph we respect ATX-style headings, though
         with a logged warning.
         """
-        if ATX_HEADER.match(self.content):
+        if ATX_HEADER.match(str(self.content)):
             logger.debug("ATX Header in block: %s", self.content)
             return True
 
@@ -163,7 +163,7 @@ def from_lines(lines: list[Line]) -> Block:
     has_code_block = False
     in_code_block = False
     in_directive = False
-    directive = None
+    directive = ""
     properties = {}
     depth = lines[0].depth
 

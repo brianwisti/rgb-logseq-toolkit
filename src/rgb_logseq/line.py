@@ -72,16 +72,16 @@ class Line(BaseModel):
         return line_depth
 
     @property
-    def directive(self) -> str | None:
+    def directive(self) -> str:
         """
         Return the directive opened or closed by this line.
 
-        If none, return None.
+        If none, return an empty string.
         """
         if self.is_directive_opener or self.is_directive_closer:
             return self.content.split(MARK_DIRECTIVE_SPLIT)[1]
 
-        return None
+        return ""
 
     @property
     def is_code_fence(self) -> bool:
