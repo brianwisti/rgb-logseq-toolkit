@@ -175,6 +175,12 @@ def public_page(prop_public: Property, page_name: str) -> Page:
 
 
 @pytest.fixture
+def word(faker: Faker) -> str:
+    """Return a random unique word."""
+    return str(faker.unique.word())
+
+
+@pytest.fixture
 def another_page(branch_block: Block, faker: Faker) -> Page:
     return parse_page_text(branch_block.raw, name=generate_page_name(faker))
 

@@ -71,6 +71,20 @@ def populate_database(conn: kuzu.Connection) -> None:
     conn.execute(f'COPY PageIsTagged from "{CSV_FILE_PAGE_IS_TAGGED}"')
 
 
+def prepare_text(text: str) -> str:
+    """
+    Reformat text so that Kuzu can handle it.
+
+    Primarily used in CSV generation.
+    """
+    return (
+        text.replace("\\$", "$")
+        .replace("\\", "\\\\")
+        .replace("\n", "\\\\n")
+        .replace('"', "*")
+    )
+
+
 def save_graph_blocks(
     graph: Graph,
     block_filename: str,
@@ -84,12 +98,7 @@ def save_graph_blocks(
 
     for page_name, page in graph.pages.items():
         for position, block in enumerate(page.blocks):
-            content = (
-                block.content.replace("\\$", "$")
-                .replace("\\", "\\\\")
-                .replace("\n", "\\\\n")
-                .replace('"', "*")
-            )
+            content = prepare_text(block.content)
             blocks.append(
                 {
                     "uuid": block.id,
@@ -112,7 +121,7 @@ def save_graph_blocks(
                     {
                         "from": block.id,
                         "to": prop_name,
-                        "value": prop.value.replace('"', "*"),
+                        "value": prepare_text(prop.value),
                     }
                 )
 
