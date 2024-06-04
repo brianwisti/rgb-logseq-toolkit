@@ -16,17 +16,18 @@ GRAPH_PATH_ENV = "GRAPH_PATH"
 DB_NAME = "graph_db"
 DB_SCHEMA_PATH = Path("etc/schema.cypher")
 
-PAGE_FOLDERS = ["journals", "pages"]
-PAGE_GLOB = "./**/*.md"
+TABLE_NAMES = [
+    "Page",
+    "Block",
+    "InPage",
+    "Links",
+    "InNamespace",
+    "PageIsTagged",
+    "PageHasProperty",
+    "BlockHasProperty",
+]
 
-CSV_FILE_BLOCK = "block.csv"
-CSV_FILE_BLOCK_HAS_PROPERTY = "block_has_property.csv"
-CSV_FILE_IN_PAGE = "in_page.csv"
-CSV_FILE_LINKS = "links.csv"
-CSV_FILE_IN_NAMESPACE = "in_namespace.csv"
-CSV_FILE_PAGE = "page.csv"
-CSV_FILE_PAGE_PROPS = "page_properties.csv"
-CSV_FILE_PAGE_IS_TAGGED = "page_is_tagged.csv"
+CSV_FOR = {name: f"stash/{name}.csv" for name in TABLE_NAMES}
 
 load_dotenv()
 
@@ -44,11 +45,13 @@ def create_db(db_name: str, schema_path: Path) -> kuzu.Connection:
 def load_graph(graph_path: Path) -> Graph:
     """Load pages in Graph."""
     logger.info("path: %s", graph_path)
+    page_folders = ["journals", "pages"]
+    page_glob = "./**/*.md"
     graph = Graph()
 
-    for folder in PAGE_FOLDERS:
+    for folder in page_folders:
         subfolder = graph_path / folder
-        for md_path in subfolder.glob(PAGE_GLOB):
+        for md_path in subfolder.glob(page_glob):
             logger.debug("md path: %s", md_path)
             page = load_page_file(md_path)
             logger.debug("page: %s", page)
@@ -60,15 +63,9 @@ def load_graph(graph_path: Path) -> Graph:
 def populate_database(conn: kuzu.Connection) -> None:
     """Copy graph info from CSV files to database."""
     # XXX: Does parameter binding not work for COPY?
-    conn.execute(f'COPY Page from "{CSV_FILE_PAGE}"')
-    conn.execute(f'COPY InNamespace from "{CSV_FILE_IN_NAMESPACE}"')
-    conn.execute(f'COPY Links from "{CSV_FILE_LINKS}"')
-    conn.execute(f'COPY PageHasProperty from "{CSV_FILE_PAGE_PROPS}"')
-    conn.execute(f'COPY PageIsTagged from "{CSV_FILE_PAGE_IS_TAGGED}"')
-    conn.execute(f'COPY Block from "{CSV_FILE_BLOCK}"')
-    conn.execute(f'COPY InPage from "{CSV_FILE_IN_PAGE}"')
-    conn.execute(f'COPY BlockHasProperty from "{CSV_FILE_BLOCK_HAS_PROPERTY}"')
-    conn.execute(f'COPY PageIsTagged from "{CSV_FILE_PAGE_IS_TAGGED}"')
+    commands = [f'COPY {table} FROM "{CSV_FOR[table]}";' for table in TABLE_NAMES]
+    full_command = "\n".join(commands)
+    conn.execute(full_command)
 
 
 def prepare_text(text: str) -> str:
@@ -85,12 +82,7 @@ def prepare_text(text: str) -> str:
     )
 
 
-def save_graph_blocks(
-    graph: Graph,
-    block_filename: str,
-    in_page_filename: str,
-    block_has_properties_filename: str,
-) -> None:
+def save_graph_blocks(graph: Graph) -> None:
     """Store Blocks and their Page connections in CSV files."""
     blocks = []
     in_page = []
@@ -128,18 +120,18 @@ def save_graph_blocks(
     blocks_df = polars.DataFrame(blocks)
     in_page_df = polars.DataFrame(in_page)
     block_properties_df = polars.DataFrame(block_properties)
-    write_as_csv(blocks_df, block_filename)
-    write_as_csv(in_page_df, in_page_filename)
-    write_as_csv(block_properties_df, block_has_properties_filename)
+    write_as_csv(blocks_df, "Block")
+    write_as_csv(in_page_df, "InPage")
+    write_as_csv(block_properties_df, "BlockHasProperty")
 
 
-def save_graph_links(graph: Graph, filename: str) -> None:
+def save_graph_links(graph: Graph) -> None:
     """Store direct link info from graph in a CSV file."""
     links_df = polars.DataFrame(graph.links)
-    write_as_csv(links_df, filename)
+    write_as_csv(links_df, "Links")
 
 
-def save_graph_page_props(graph: Graph, page_prop_filename: str) -> None:
+def save_graph_page_props(graph: Graph) -> None:
     """Store page properties from graph in CSV files."""
     pages_with_properties = []
 
@@ -152,10 +144,10 @@ def save_graph_page_props(graph: Graph, page_prop_filename: str) -> None:
         ]
 
     page_props_df = polars.DataFrame(pages_with_properties)
-    write_as_csv(page_props_df, page_prop_filename)
+    write_as_csv(page_props_df, "PageHasProperty")
 
 
-def save_graph_namespaces(graph: Graph, filename: str) -> None:
+def save_graph_namespaces(graph: Graph) -> None:
     """Store page namespaces from graph in a CSV file."""
     namespaces = []
 
@@ -167,10 +159,10 @@ def save_graph_namespaces(graph: Graph, filename: str) -> None:
         namespaces.append(info)
 
     namespaces_df = polars.DataFrame(namespaces)
-    write_as_csv(namespaces_df, filename)
+    write_as_csv(namespaces_df, "InNamespace")
 
 
-def save_graph_page_tags(graph: Graph, filename: str) -> None:
+def save_graph_page_tags(graph: Graph) -> None:
     """Store page tags from graph in a CSV file."""
     page_tags = []
 
@@ -180,10 +172,10 @@ def save_graph_page_tags(graph: Graph, filename: str) -> None:
             page_tags.append(info)
 
     page_tags_df = polars.DataFrame(page_tags)
-    write_as_csv(page_tags_df, filename)
+    write_as_csv(page_tags_df, "PageIsTagged")
 
 
-def save_graph_pages(graph: Graph, filename: str) -> None:
+def save_graph_pages(graph: Graph) -> None:
     """Store page info from graph in a CSV file."""
     pages = [
         {
@@ -194,12 +186,12 @@ def save_graph_pages(graph: Graph, filename: str) -> None:
         for page in graph.pages.values()
     ]
     pages_df = polars.DataFrame(pages)
-    write_as_csv(pages_df, filename)
+    write_as_csv(pages_df, "Page")
 
 
-def write_as_csv(df: polars.DataFrame, filename: str) -> None:
+def write_as_csv(df: polars.DataFrame, table: str) -> None:
     """Write a DataFrame as CSV to the specified file."""
-    df.write_csv(filename, include_header=False, quote_style="non_numeric")
+    df.write_csv(CSV_FOR[table], include_header=False, quote_style="non_numeric")
 
 
 def main() -> None:
@@ -211,14 +203,12 @@ def main() -> None:
     graph = load_graph(pages_path)
     logger.info("Loaded graph %s; %s pages", pages_path.stem, len(graph.pages))
 
-    save_graph_pages(graph, CSV_FILE_PAGE)
-    save_graph_namespaces(graph, CSV_FILE_IN_NAMESPACE)
-    save_graph_links(graph, CSV_FILE_LINKS)
-    save_graph_page_props(graph, CSV_FILE_PAGE_PROPS)
-    save_graph_page_tags(graph, CSV_FILE_PAGE_IS_TAGGED)
-    save_graph_blocks(
-        graph, CSV_FILE_BLOCK, CSV_FILE_IN_PAGE, CSV_FILE_BLOCK_HAS_PROPERTY
-    )
+    save_graph_pages(graph)
+    save_graph_namespaces(graph)
+    save_graph_links(graph)
+    save_graph_page_props(graph)
+    save_graph_page_tags(graph)
+    save_graph_blocks(graph)
 
     conn = create_db(DB_NAME, DB_SCHEMA_PATH)
     populate_database(conn)

@@ -162,6 +162,7 @@ cython_debug/
 #.idea/
 
 # Kuzu data, history, and intermediate files
+*.csv
 graph_db
 history.txt
-*.csv
+stash
