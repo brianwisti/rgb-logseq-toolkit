@@ -220,6 +220,12 @@ def branch_block_line(text_line: str) -> line.Line:
 
 
 @pytest.fixture
+def prop_heading() -> Property:
+    """Return a Property indicating a heading block."""
+    return Property.loads("heading:: true")
+
+
+@pytest.fixture
 def prop_scalar(faker: Faker) -> Property:
     """Return a Property with a single string value."""
     field = faker.word()

@@ -1,11 +1,18 @@
 """Loading and processing Logseq blocks."""
 
+import re
+
 from pydantic import BaseModel
 
 from .const import logger
 from .line import Line, parse_line
 from .link import DirectLink
 from .property import Property, ValueList
+
+ATX_HEADER = re.compile(
+    r"""^ \#{1,6} \s """,
+    re.VERBOSE,
+)
 
 
 def toggle(value: bool) -> bool:
@@ -45,6 +52,24 @@ class Block(BaseModel):
     def is_directive(self) -> bool:
         """Return true if this Block is a Logseq directive."""
         return bool(self.directive)
+
+    @property
+    def is_heading(self) -> bool:
+        """
+        Return True if this Block marks a page section heading.
+
+        For consistency I lean on the ``heading:: true`` property. As I'm
+        inconsistent in my own graph we respect ATX-style headings, though
+        with a logged warning.
+        """
+        if ATX_HEADER.match(self.content):
+            logger.warning("ATX Header in block: %s", self.content)
+            return True
+
+        if "heading" not in self.properties:
+            return False
+
+        return self.properties["heading"].is_true
 
     @property
     def is_public(self) -> bool:

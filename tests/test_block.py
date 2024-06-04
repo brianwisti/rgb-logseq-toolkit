@@ -3,7 +3,7 @@
 import pytest
 
 from rgb_logseq.block import BlockDepthError, find_blocks, from_lines
-from rgb_logseq.line import parse_line, parse_lines
+from rgb_logseq.line import Line, parse_line, parse_lines
 
 from .conftest import (
     as_branch_block,
@@ -195,6 +195,26 @@ class TestCodeBlock:
         ]
         block = from_lines(parse_lines(text_lines))
         assert not block.links
+
+
+class TestBlockIsHeading:
+    def test_default_is_false(self, branch_block):
+        assert not branch_block.is_heading
+
+    def test_with_heading_prop(self, branch_block, prop_heading):
+        branch_block.properties["heading"] = prop_heading
+
+        assert branch_block.is_heading
+
+    @pytest.mark.parametrize(
+        "prefix",
+        ["#", "##", "###", "####", "#####", "######"],
+    )
+    def test_with_atx_prefix(self, prefix: str, text_line: str):
+        text_line = f"- {prefix} {text_line}"
+        block = from_lines([Line(raw=text_line)])
+
+        assert block.is_heading
 
 
 class TestLoadDirectiveBlock:
