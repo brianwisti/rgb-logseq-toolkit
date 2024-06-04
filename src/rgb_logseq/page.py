@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from pydantic import BaseModel
+from pydantic import BaseModel, computed_field
 
 from .block import Block, find_blocks
 from .const import logger
@@ -22,7 +22,7 @@ class Page(BaseModel):
     # True if this should not be treated as a full Page by handlers.
     is_placeholder: bool = False
 
-    @property
+    @computed_field
     def is_public(self) -> bool:
         """Return True if this page's root content is public."""
         if "public" not in self.properties:

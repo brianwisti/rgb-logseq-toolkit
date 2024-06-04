@@ -178,11 +178,7 @@ def save_graph_page_tags(graph: Graph) -> None:
 def save_graph_pages(graph: Graph) -> None:
     """Store page info from graph in a CSV file."""
     pages = [
-        {
-            "name": page.name,
-            "is_placeholder": page.is_placeholder,
-            "is_public": page.is_public,
-        }
+        page.model_dump(include={"name", "is_placeholder", "is_public"})
         for page in graph.pages.values()
     ]
     pages_df = polars.DataFrame(pages)
