@@ -1,15 +1,17 @@
 """Explore my Logseq graph in Kuzu."""
 
 from pathlib import Path
+from typing import Any
 import os
 
 from dotenv import load_dotenv
 import kuzu
 import polars
 
+
 from .const import logger
-from .graph import Graph
-from .page import NAMESPACE_SELF, load_page_file
+from .graph import Graph, load_graph
+from .page import NAMESPACE_SELF
 
 GRAPH_PATH_ENV = "GRAPH_PATH"
 
@@ -42,24 +44,6 @@ def create_db(db_name: str, schema_path: Path) -> kuzu.Connection:
     return conn
 
 
-def load_graph(graph_path: Path) -> Graph:
-    """Load pages in Graph."""
-    logger.debug("path: %s", graph_path)
-    page_folders = ["journals", "pages"]
-    page_glob = "./**/*.md"
-    graph = Graph()
-
-    for folder in page_folders:
-        subfolder = graph_path / folder
-        for md_path in subfolder.glob(page_glob):
-            logger.debug("md path: %s", md_path)
-            page = load_page_file(md_path)
-            logger.debug("page: %s", page)
-            graph.add_page(page)
-
-    return graph
-
-
 def populate_database(conn: kuzu.Connection) -> None:
     """Copy graph info from CSV files to database."""
     # XXX: Does parameter binding not work for COPY?
@@ -82,107 +66,225 @@ def prepare_text(text: str) -> str:
     )
 
 
-def save_graph_blocks(graph: Graph) -> None:
-    """Store Blocks and their Page connections in CSV files."""
+RowInfo = dict[str, Any]
+RowInfoList = list[RowInfo]
+
+
+def load_graph_blocks(graph: Graph) -> dict[str, RowInfoList]:
+    """Load block info from the graph."""
     blocks = []
-    in_page = []
+    page_memberships = []
     block_properties = []
 
     for page_name, page in graph.pages.items():
-        for position, block in enumerate(page.blocks):
-            content = prepare_text(block.content)
+        for position, block_info in enumerate(page.blocks):
             blocks.append(
                 {
-                    "uuid": block.id,
-                    "content": content,
-                    "is_heading": block.is_heading,
-                    "directive": block.directive,
+                    "uuid": block_info.id,
+                    "content": block_info.content,
+                    "is_heading": block_info.is_heading,
+                    "directive": block_info.directive,
                 }
             )
-            in_page.append(
+            page_memberships.append(
                 {
-                    "from": block.id,
-                    "to": page_name,
+                    "block": block_info.id,
+                    "page": page_name,
                     "position": position,
-                    "depth": block.depth,
+                    "depth": block_info.depth,
                 }
             )
 
-            for prop_name, prop in block.properties.items():
+            for prop_name, prop in block_info.properties.items():
                 block_properties.append(
                     {
-                        "from": block.id,
-                        "to": prop_name,
-                        "value": prepare_text(prop.value),
+                        "block": block_info.id,
+                        "prop": prop_name,
+                        "value": prop.value,
                     }
                 )
 
-    blocks_df = polars.DataFrame(blocks)
-    in_page_df = polars.DataFrame(in_page)
-    block_properties_df = polars.DataFrame(block_properties)
-    write_as_csv(blocks_df, "Block")
-    write_as_csv(in_page_df, "InPage")
-    write_as_csv(block_properties_df, "BlockHasProperty")
+    return {
+        "blocks": blocks,
+        "page_memberships": page_memberships,
+        "block_properties": block_properties,
+    }
 
 
-def save_graph_links(graph: Graph) -> None:
-    """Store direct link info from graph in a CSV file."""
-    links_df = polars.DataFrame(graph.links)
-    write_as_csv(links_df, "Links")
-
-
-def save_graph_page_props(graph: Graph) -> None:
-    """Store page properties from graph in CSV files."""
-    pages_with_properties = []
-
-    for prop, pages_with_prop in graph.page_properties.items():
-        # Tweaking nested strings until Kuzu issue #3461 is resolved.
-        # - https://github.com/kuzudb/kuzu/issues/3461
-        pages_with_properties += [
-            {"from": page, "to": prop, "value": value.replace('"', "*")}
-            for page, value in pages_with_prop.items()
-        ]
-
-    page_props_df = polars.DataFrame(pages_with_properties)
-    write_as_csv(page_props_df, "PageHasProperty")
-
-
-def save_graph_namespaces(graph: Graph) -> None:
-    """Store page namespaces from graph in a CSV file."""
+def load_graph_pages(graph: Graph) -> dict[str, RowInfoList]:
+    """Load page info from the graph."""
+    pages = []
     namespaces = []
+    page_properties = []
+    links = []
+    tags = []
 
     for page in graph.pages.values():
-        if page.namespace == NAMESPACE_SELF:
-            continue
+        pages.append(
+            {
+                "name": page.name,
+                "is_placeholder": page.is_placeholder,
+                "is_public": page.is_public,
+            }
+        )
 
-        info = {"from": page.name, "to": page.namespace}
-        namespaces.append(info)
+        if page.namespace != NAMESPACE_SELF:
+            namespaces.append({"page": page.name, "namespace": page.namespace})
 
-    namespaces_df = polars.DataFrame(namespaces)
-    write_as_csv(namespaces_df, "InNamespace")
+        for link in page.links:
+            links.append({"source": page.name, "target": link.target})
+
+        for tag in page.tags:
+            tags.append({"page": page.name, "tag": tag})
+
+        for prop_name, page_prop in page.properties.items():
+            page_properties.append(
+                {
+                    "page": page.name,
+                    "property": prop_name,
+                    "value": prepare_text(page_prop.value),
+                }
+            )
+
+    return {
+        "pages": pages,
+        "namespaces": namespaces,
+        "page_properties": page_properties,
+        "links": links,
+        "tags": tags,
+    }
 
 
-def save_graph_page_tags(graph: Graph) -> None:
-    """Store page tags from graph in a CSV file."""
-    page_tags = []
+def save_graph_blocks(graph: Graph, conn: kuzu.Connection) -> None:
+    """Store Blocks and their Page connections in CSV files."""
+    graph_block_info = load_graph_blocks(graph)
 
-    for tag, pages_with_tags in graph.page_tags.items():
-        for page in pages_with_tags:
-            info = {"from": page, "to": tag}
-            page_tags.append(info)
+    blocks = graph_block_info["blocks"]
+    logger.info("Saving %s blocks", len(blocks))
+    conn.execute("BEGIN TRANSACTION;")
 
-    page_tags_df = polars.DataFrame(page_tags)
-    write_as_csv(page_tags_df, "PageIsTagged")
+    for block_info in blocks:
+        conn.execute(
+            """
+                CREATE (
+                    b:Block {
+                        uuid: $uuid,
+                        content: $content,
+                        is_heading: $is_heading,
+                        directive: $directive
+                    }
+                );
+            """,
+            block_info,
+        )
+
+    conn.execute("COMMIT;")
+    block_properties = graph_block_info["block_properties"]
+    logger.info("Saving %s block properties", len(block_properties))
+    conn.execute("BEGIN TRANSACTION;")
+
+    for prop in block_properties:
+        conn.execute(
+            """
+                MATCH (b:Block {uuid: $block}), (p:Page {name: $prop})
+                CREATE (b)-[:BlockHasProperty {value: $value}]->(p);
+            """,
+            prop,
+        )
+
+    page_memberships = graph_block_info["page_memberships"]
+    logger.info("Saving %s page memberships", len(page_memberships))
+    for membership in page_memberships:
+        conn.execute(
+            """
+                MATCH (b:Block {uuid: $block}), (p:Page {name: $page})
+                CREATE (b)-[:InPage {position: $position, depth: $depth}]->(p);
+            """,
+            membership,
+        )
+    conn.execute("COMMIT;")
+
+    logger.info("Finished saving block data.")
 
 
-def save_graph_pages(graph: Graph) -> None:
+def save_graph_pages(graph: Graph, conn: kuzu.Connection) -> None:
     """Store page info from graph in a CSV file."""
-    pages = [
-        page.model_dump(include={"name", "is_placeholder", "is_public"})
-        for page in graph.pages.values()
-    ]
-    pages_df = polars.DataFrame(pages)
-    write_as_csv(pages_df, "Page")
+    page_data = load_graph_pages(graph)
+
+    pages = page_data["pages"]
+    logger.info("Saving %s pages", len(pages))
+    conn.execute("BEGIN TRANSACTION;")  # Start a transaction.
+    page_st = conn.prepare(
+        """
+            CREATE (
+                p:Page {
+                    name: $name,
+                    is_placeholder: $is_placeholder,
+                    is_public: $is_public
+                }
+            );
+        """
+    )
+    for page_info in pages:
+        conn.execute(page_st, page_info)
+    conn.execute("COMMIT;")  # Commit the transaction.
+
+    namespaces = page_data["namespaces"]
+    logger.info("Saving %s namespaces", len(namespaces))
+    conn.execute("BEGIN TRANSACTION;")  # Start a transaction.
+    namespace_st = conn.prepare(
+        """
+            MATCH (p:Page {name: $page}), (n:Page {name: $namespace})
+            CREATE (p)-[:InNamespace]->(n);
+        """
+    )
+    for namespace in namespaces:
+        # Create a namespace relation for each saved namespace.
+        logger.debug("Creating namespace relation: %s", namespace)
+        conn.execute(namespace_st, namespace)
+
+    page_properties = page_data["page_properties"]
+    logger.info("Saving %s page properties", len(page_properties))
+    page_prop_st = conn.prepare(
+        """
+            MATCH (p:Page {name: $page}), (pr:Page {name: $property})
+            CREATE (p)-[:PageHasProperty {value: $value}]->(pr);
+        """
+    )
+
+    for page_prop in page_properties:
+        # Create a property relation for each saved property.
+        logger.debug("Creating page property relation: %s", page_prop)
+        conn.execute(page_prop_st, page_prop)
+
+    links = page_data["links"]
+    logger.info("Saving %s links", len(links))
+    for link in links:
+        # Create a link relation for each saved link.
+        logger.debug("Creating link relation: %s", link)
+        conn.execute(
+            """
+                MATCH (s:Page {name: $source}), (t:Page {name: $target})
+                CREATE (s)-[:Links]->(t);
+            """,
+            link,
+        )
+
+    tags = page_data["tags"]
+    logger.info("Saving %s tags", len(tags))
+    for tag in tags:
+        # Create a tag relation for each saved tag.
+        logger.debug("Creating tag relation: %s", tag)
+        conn.execute(
+            """
+                MATCH (p:Page {name: $page}), (t:Page {name: $tag})
+                CREATE (p)-[:PageIsTagged]->(t);
+            """,
+            tag,
+        )
+
+    conn.execute("COMMIT;")  # Commit the transaction.
+    logger.info("Database populated with page data.")
 
 
 def write_as_csv(df: polars.DataFrame, table: str) -> None:
@@ -198,16 +300,9 @@ def main() -> None:
     pages_path = Path(graph_path).expanduser()
     graph = load_graph(pages_path)
     logger.info("Loaded graph %s; %s pages", pages_path.stem, len(graph.pages))
-
-    save_graph_pages(graph)
-    save_graph_namespaces(graph)
-    save_graph_links(graph)
-    save_graph_page_props(graph)
-    save_graph_page_tags(graph)
-    save_graph_blocks(graph)
-
     conn = create_db(DB_NAME, DB_SCHEMA_PATH)
-    populate_database(conn)
+    save_graph_pages(graph, conn)
+    save_graph_blocks(graph, conn)
 
 
 if __name__ == "__main__":

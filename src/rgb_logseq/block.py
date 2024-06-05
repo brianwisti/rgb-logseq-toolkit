@@ -32,7 +32,7 @@ class BlockDepthError(Exception):
 class Block(BaseModel):
     """A single block of a Logseq page."""
 
-    generated_id: str = Field(default_factory=lambda: uuid.uuid4().hex)
+    generated_id: uuid.UUID = Field(default_factory=lambda: uuid.uuid4())
     lines: list[Line]
     properties: dict[str, Property]
     has_code_block: bool
@@ -51,7 +51,7 @@ class Block(BaseModel):
         return self.lines[0].depth
 
     @computed_field
-    def id(self) -> str:
+    def id(self) -> uuid.UUID:
         """
         Return this Block's unique ID.
 
@@ -59,7 +59,7 @@ class Block(BaseModel):
         use the object's generated ID.
         """
         if "id" in self.properties:
-            return self.properties["id"].value.replace("-", "")
+            return uuid.UUID(hex=self.properties["id"].value)
 
         return self.generated_id
 

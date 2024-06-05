@@ -1,6 +1,9 @@
 """Logseq graph module."""
 
+from pathlib import Path
 from pydantic import BaseModel
+
+from rgb_logseq.page import load_page_file
 
 from .const import logger
 from .page import NAMESPACE_SELF, Page
@@ -119,3 +122,21 @@ class Graph(BaseModel):
                 connections.append({"from": page.name, "to": link.target})
 
         return connections
+
+
+def load_graph(graph_path: Path) -> Graph:
+    """Load pages in Graph."""
+    logger.debug("path: %s", graph_path)
+    page_folders = ["journals", "pages"]
+    page_glob = "./**/*.md"
+    graph = Graph()
+
+    for folder in page_folders:
+        subfolder = graph_path / folder
+        for md_path in subfolder.glob(page_glob):
+            logger.debug("md path: %s", md_path)
+            page = load_page_file(md_path)
+            logger.debug("page: %s", page)
+            graph.add_page(page)
+
+    return graph

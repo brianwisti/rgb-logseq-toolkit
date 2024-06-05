@@ -1,5 +1,7 @@
 """Test loading and processing Logseq blocks."""
 
+import uuid
+
 import pytest
 
 from rgb_logseq.block import BlockDepthError, find_blocks, from_lines
@@ -41,7 +43,7 @@ class TestBlock:
         id_prop_line = Line(raw=f"id:: {id_prop}")
         block = from_lines([id_prop_line, root_block_line])
 
-        assert block.id == id_prop.replace("-", "")
+        assert block.id == uuid.UUID(id_prop)
 
 
 class TestFindBlocks:
