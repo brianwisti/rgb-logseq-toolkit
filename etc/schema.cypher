@@ -9,10 +9,6 @@ create rel table InNamespace(
     from Page to Page
 );
 
-create rel table Links(
-    from Page to Page
-);
-
 create rel table PageHasProperty(
     from Page to Page,
     value string
@@ -39,4 +35,8 @@ create rel table InPage(
 create rel table BlockHasProperty(
     from Block to Page,
     value string
+);
+
+create rel table Links(
+    from Block to Page
 );

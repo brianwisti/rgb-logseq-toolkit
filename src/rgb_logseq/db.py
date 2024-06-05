@@ -32,6 +32,7 @@ def create_db(db_name: str, schema_path: Path) -> kuzu.Connection:
 def load_graph_blocks(graph: Graph) -> dict[str, pd.DataFrame]:
     """Load block info from the graph."""
     blocks = []
+    links = []
     page_memberships = []
     block_properties = []
 
@@ -54,6 +55,9 @@ def load_graph_blocks(graph: Graph) -> dict[str, pd.DataFrame]:
                 }
             )
 
+            for link in block_info.links:
+                links.append({"source": str(block_info.id), "target": link.target})
+
             for prop_name, prop in block_info.properties.items():
                 block_properties.append(
                     {
@@ -65,6 +69,7 @@ def load_graph_blocks(graph: Graph) -> dict[str, pd.DataFrame]:
 
     return {
         "blocks": pd.DataFrame(blocks),
+        "links": pd.DataFrame(links),
         "page_memberships": pd.DataFrame(page_memberships),
         "block_properties": pd.DataFrame(block_properties),
     }
@@ -75,7 +80,6 @@ def load_graph_pages(graph: Graph) -> dict[str, pd.DataFrame]:
     pages = []
     namespaces = []
     page_properties = []
-    links = []
     tags = []
 
     for page in graph.pages.values():
@@ -89,9 +93,6 @@ def load_graph_pages(graph: Graph) -> dict[str, pd.DataFrame]:
 
         if page.namespace != NAMESPACE_SELF:
             namespaces.append({"page": page.name, "namespace": page.namespace})
-
-        for link in page.links:
-            links.append({"source": page.name, "target": link.target})
 
         for tag in page.tags:
             tags.append({"page": page.name, "tag": tag})
@@ -109,7 +110,6 @@ def load_graph_pages(graph: Graph) -> dict[str, pd.DataFrame]:
         "pages": pd.DataFrame(pages),
         "namespaces": pd.DataFrame(namespaces),
         "page_properties": pd.DataFrame(page_properties),
-        "links": pd.DataFrame(links),
         "tags": pd.DataFrame(tags),
     }
 
@@ -125,6 +125,17 @@ def save_graph_blocks(graph: Graph, conn: kuzu.Connection) -> None:
             COPY Block FROM (
                 LOAD FROM blocks
                 RETURN cast(uuid, 'UUID'), content, is_heading, directive
+            )
+        """
+    )
+
+    links = graph_block_info["links"]
+    logger.info("Saving %s direct links", len(links))
+    conn.execute(
+        """
+            COPY Links FROM (
+                LOAD FROM links
+                RETURN cast(source, 'UUID'), target
             )
         """
     )
@@ -169,10 +180,6 @@ def save_graph_pages(graph: Graph, conn: kuzu.Connection) -> None:
     page_properties = page_data["page_properties"]
     logger.info("Saving %s page properties", len(page_properties))
     conn.execute("COPY PageHasProperty FROM (LOAD FROM page_properties RETURN *)")
-
-    links = page_data["links"]
-    logger.info("Saving %s links", len(links))
-    conn.execute("COPY Links FROM (LOAD FROM links RETURN *)")
 
     tags = page_data["tags"]
     logger.info("Saving %s tags", len(tags))
