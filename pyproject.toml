@@ -15,9 +15,10 @@ dependencies = [
     "mypy>=1.10.0",
     "kuzu>=0.4.2",
     "rich>=13.7.1",
-    "polars>=0.20.30",
     "python-dotenv>=1.0.1",
     "pyarrow>=16.1.0",
+    "pandas>=2.2.2",
+    "pandas-stubs>=2.2.2.240603",
 ]
 requires-python = "==3.12.*"
 readme = "README.md"

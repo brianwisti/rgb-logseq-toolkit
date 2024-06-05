@@ -32,8 +32,8 @@ create node table Block(
 
 create rel table InPage(
     from Block to Page,
-    position uint32,
-    depth uint32
+    position int64,
+    depth int64
 );
 
 create rel table BlockHasProperty(
