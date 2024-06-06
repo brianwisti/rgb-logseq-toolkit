@@ -19,6 +19,7 @@ dependencies = [
     "pyarrow>=16.1.0",
     "pandas>=2.2.2",
     "pandas-stubs>=2.2.2.240603",
+    "pytest-cov>=5.0.0",
 ]
 requires-python = "==3.12.*"
 readme = "README.md"

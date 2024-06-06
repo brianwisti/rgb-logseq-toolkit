@@ -1,7 +1,5 @@
 """Tests for Logseq page handling."""
 
-from pathlib import Path
-
 import pytest
 from faker import Faker
 
@@ -9,13 +7,6 @@ from rgb_logseq.page import NAMESPACE_SELF, Page, load_page_file, parse_page_tex
 from rgb_logseq.property import Property
 
 from .conftest import as_branch_block
-
-
-@pytest.fixture
-def page_path(page_name, branch_block_line, fs):
-    path = Path(f"{page_name}.md")
-    fs.create_file(path, contents=branch_block_line.raw)
-    return path
 
 
 # pylint: disable=missing-class-docstring, missing-function-docstring
@@ -55,10 +46,10 @@ class TestPageLoads:
 
 
 class TestPage:
-    def test_load(self, page_path):
-        page = load_page_file(page_path)
+    def test_load(self, path_to_page):
+        page = load_page_file(path_to_page)
 
-        assert page.name == page_path.stem
+        assert page.name == path_to_page.stem
         assert page.blocks
         assert not page.is_public
 

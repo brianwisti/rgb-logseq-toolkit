@@ -1,5 +1,6 @@
 """Logseq graph module."""
 
+import pandas as pd
 from pathlib import Path
 from pydantic import BaseModel
 
@@ -140,3 +141,89 @@ def load_graph(graph_path: Path) -> Graph:
             graph.add_page(page)
 
     return graph
+
+
+def load_graph_blocks(graph: Graph) -> dict[str, pd.DataFrame]:
+    """Load block info from the graph."""
+    blocks = []
+    links = []
+    page_memberships = []
+    block_properties = []
+
+    for page_name, page in graph.pages.items():
+        for position, block_info in enumerate(page.blocks):
+            block_id = str(block_info.id)
+            blocks.append(
+                {
+                    "uuid": block_id,
+                    "content": block_info.content,
+                    "is_heading": block_info.is_heading,
+                    "directive": block_info.directive,
+                }
+            )
+            page_memberships.append(
+                {
+                    "block": block_id,
+                    "page": page_name,
+                    "position": position,
+                    "depth": block_info.depth,
+                }
+            )
+
+            for link in block_info.links:
+                links.append({"source": block_id, "target": link.target})
+
+            for prop_name, prop in block_info.properties.items():
+                block_properties.append(
+                    {
+                        "block": block_id,
+                        "prop": prop_name,
+                        "value": prop.value,
+                    }
+                )
+
+    return {
+        "blocks": pd.DataFrame(blocks),
+        "links": pd.DataFrame(links),
+        "page_memberships": pd.DataFrame(page_memberships),
+        "block_properties": pd.DataFrame(block_properties),
+    }
+
+
+def load_graph_pages(graph: Graph) -> dict[str, pd.DataFrame]:
+    """Load page info from the graph."""
+    pages = []
+    namespaces = []
+    page_properties = []
+    tags = []
+
+    for page in graph.pages.values():
+        pages.append(
+            {
+                "name": page.name,
+                "is_placeholder": page.is_placeholder,
+                "is_public": page.is_public,
+            }
+        )
+
+        if page.namespace != NAMESPACE_SELF:
+            namespaces.append({"page": page.name, "namespace": page.namespace})
+
+        for tag in page.tags:
+            tags.append({"page": page.name, "tag": tag})
+
+        for prop_name, page_prop in page.properties.items():
+            page_properties.append(
+                {
+                    "page": page.name,
+                    "property": prop_name,
+                    "value": page_prop.value,
+                }
+            )
+
+    return {
+        "pages": pd.DataFrame(pages),
+        "namespaces": pd.DataFrame(namespaces),
+        "page_properties": pd.DataFrame(page_properties),
+        "tags": pd.DataFrame(tags),
+    }

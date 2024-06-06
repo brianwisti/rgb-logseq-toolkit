@@ -1,7 +1,9 @@
 """Pytest shared support logic for testing."""
 
-import pytest
 from dataclasses import dataclass
+from pathlib import Path
+
+import pytest
 from faker import Faker
 
 from rgb_logseq import line
@@ -115,6 +117,12 @@ def graph_links(range_cap: int, faker: Faker) -> list[DirectLink]:
 
 
 @pytest.fixture
+def graph_name():
+    """Return a name usable for test graphs."""
+    return "test-graph"
+
+
+@pytest.fixture
 def labeled_graph_link(page_name: str, faker: Faker) -> DirectLink:
     """Return a link to a graph page using a custom label."""
     label = faker.word()
@@ -167,6 +175,25 @@ def page_with_tags(page: Page, prop_tags: Property) -> Page:
     """Return a Page with tags."""
     page.properties["tags"] = prop_tags
     return page
+
+
+@pytest.fixture
+def path_to_graph(graph_name, fs) -> Path:
+    """Create a graph folder structure without pages on a fake filesystem."""
+    path = Path(graph_name)
+    fs.create_dir(path)
+    fs.create_dir(path / "pages")
+
+    return path
+
+
+@pytest.fixture
+def path_to_page(path_to_graph, page_name, branch_block_line, fs):
+    """Create a page on a fake filesystem."""
+    path = path_to_graph / "pages" / f"{page_name}.md"
+    fs.create_file(path, contents=branch_block_line.raw)
+
+    return path
 
 
 @pytest.fixture

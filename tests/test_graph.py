@@ -3,7 +3,7 @@
 import pytest
 from pathlib import Path
 
-from rgb_logseq.graph import DuplicatePageNameError, Graph
+from rgb_logseq.graph import DuplicatePageNameError, Graph, load_graph
 from rgb_logseq.page import NAMESPACE_SELF, Page
 
 
@@ -169,3 +169,10 @@ class TestGraphPageNamespaces:
         while str(namespace) != NAMESPACE_SELF:
             assert str(namespace) in graph.pages
             namespace = namespace.parent
+
+
+class TestLoadGraphPages:
+    def test_load_empty_graph(self, path_to_graph):
+        graph = load_graph(path_to_graph)
+
+        assert not graph.pages

@@ -11,6 +11,9 @@ types:
 
 check: lint types
 
+coverage:
+    pdm run pytest --cov
+
 db: clean-db
     PYTHONPATH=src pdm run python -m rgb_logseq.db
 
