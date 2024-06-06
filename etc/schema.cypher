@@ -32,6 +32,10 @@ create rel table InPage(
     depth int64
 );
 
+create rel table InBranch(
+    from Block to Block
+);
+
 create rel table BlockHasProperty(
     from Block to Page,
     value string

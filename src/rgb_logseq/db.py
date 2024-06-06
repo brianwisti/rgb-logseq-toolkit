@@ -42,6 +42,17 @@ def save_graph_blocks(graph: Graph, conn: kuzu.Connection) -> None:
         """
     )
 
+    branches = graph_block_info["branches"]
+    logger.info("Saving %s block branches", len(branches))
+    conn.execute(
+        """
+            COPY InBranch FROM (
+                LOAD FROM branches
+                RETURN cast(uuid, 'UUID'), cast(parent, 'UUID')
+            )
+        """
+    )
+
     links = graph_block_info["links"]
     logger.info("Saving %s direct links", len(links))
     conn.execute(

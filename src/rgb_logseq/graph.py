@@ -149,10 +149,24 @@ def load_graph_blocks(graph: Graph) -> dict[str, pd.DataFrame]:
     links = []
     page_memberships = []
     block_properties = []
+    block_branches = []
 
     for page_name, page in graph.pages.items():
+        # Building a map of newest branches seen at each level,
+        # which provides an extremely narrow map of the tree from
+        # the perspective of the current block.
+        block_branches_seen: dict[int, str] = {}
+
         for position, block_info in enumerate(page.blocks):
             block_id = str(block_info.id)
+            block_depth = block_info.depth
+            block_branches_seen[block_depth] = block_id
+            parent_depth = block_depth - 1
+
+            if parent_depth in block_branches_seen:
+                parent_id = block_branches_seen[parent_depth]
+                block_branches.append({"uuid": block_id, "parent": parent_id})
+
             blocks.append(
                 {
                     "uuid": block_id,
@@ -184,6 +198,7 @@ def load_graph_blocks(graph: Graph) -> dict[str, pd.DataFrame]:
 
     return {
         "blocks": pd.DataFrame(blocks),
+        "branches": pd.DataFrame(block_branches),
         "links": pd.DataFrame(links),
         "page_memberships": pd.DataFrame(page_memberships),
         "block_properties": pd.DataFrame(block_properties),
