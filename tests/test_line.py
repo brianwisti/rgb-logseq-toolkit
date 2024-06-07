@@ -137,3 +137,49 @@ class TestLineLinks:
         line = parse_line(text_line)
 
         assert not line.links
+
+    @pytest.mark.xfail(reason="needs smarter parsing")
+    def test_link_in_inline_code_ignored(self, word):
+        text_line = f"`Hello [[{word}]] World`"
+        line = parse_line(text_line)
+
+        assert not any(link for link in line.tag_links if link.target == word)
+
+
+class TestLineTagLinks:
+    def test_tagged_word_standalone(self, word):
+        text_line = f"#{word}"
+        line = parse_line(text_line)
+
+        assert any(link for link in line.tag_links if link.target == word)
+
+    def test_tagged_word_in_sentence(self, word):
+        text_line = f"Hello #{word} World"
+        line = parse_line(text_line)
+
+        assert any(link for link in line.tag_links if link.target == word)
+
+    def test_tagged_word_as_inline_code_ignored(self, word):
+        text_line = f"`#{word}`"
+        line = parse_line(text_line)
+
+        assert not any(link for link in line.tag_links if link.target == word)
+
+    @pytest.mark.xfail(reason="needs smarter parsing")
+    def test_tagged_word_in_inline_code_ignored(self, word):
+        text_line = f"`Hello #{word} World`"
+        line = parse_line(text_line)
+
+        assert not any(link for link in line.tag_links if link.target == word)
+
+    def test_link_with_tag_prefix(self, word):
+        text_line = f"#[[{word}]]"
+        line = parse_line(text_line)
+
+        assert any(link for link in line.tag_links if link.target == word)
+
+    def test_with_tag_prefix_is_not_direct_link(self, word):
+        text_line = f"#[[{word}]]"
+        line = parse_line(text_line)
+
+        assert not any(link for link in line.links if link.target == word)

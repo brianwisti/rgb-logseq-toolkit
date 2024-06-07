@@ -15,16 +15,28 @@ from .const import (
     MARK_PROPERTY,
     logger,
 )
-from .link import DirectLink
+from .link import DirectLink, TagLink
 from .property import Property
 
 LINK_PATTERN = re.compile(
     r"""
-        (?<! ` )
+        (?<! ` | \# )
         \[\[
             (?P<target>[^\]]+)
         \]\]
                           """,
+    re.VERBOSE,
+)
+
+TAG_LINK_PATTERN = re.compile(
+    r"""
+        (?<! ` )
+        \#
+        ( \w+ )
+        |
+        (?: \[\[ ( [^\]]+ ) \]\])
+        (?<! ` )
+    """,
     re.VERBOSE,
 )
 
@@ -130,6 +142,24 @@ class Line(BaseModel):
         """Return a list of graph links contained in this Line."""
         link_matches = LINK_PATTERN.findall(self.content)
         return [DirectLink(target=target) for target in link_matches]
+
+    @property
+    def tag_links(self) -> list[TagLink]:
+        """Return a list of tag links contained in this line."""
+        tag_links = []
+        tag_link_matches = TAG_LINK_PATTERN.findall(self.content)
+        print(tag_link_matches)
+
+        for as_link, as_word in tag_link_matches:
+            target = as_word if as_word else as_link
+            logger.info("using <%s> as tag target from: %s", target, self.raw)
+
+            if not target:
+                logger.error("Tag link without target in matches: %s", tag_link_matches)
+
+            tag_links.append(TagLink(target=target))
+
+        return tag_links
 
     def as_property(self) -> Property:
         """
