@@ -265,3 +265,12 @@ class TestBlockLinks:
         targets = [link.target for link in block.links]
 
         assert link.target in targets
+
+
+class TestBlockTagLinks:
+    def test_listing(self, word):
+        line = parse_line(f"#{word}")
+        block = from_lines([line])
+        targets = [link.target for link in block.tag_links]
+
+        assert word in targets

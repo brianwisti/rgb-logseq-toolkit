@@ -8,7 +8,7 @@ from faker import Faker
 
 from rgb_logseq import line
 from rgb_logseq.block import Block, find_blocks
-from rgb_logseq.link import DirectLink
+from rgb_logseq.link import DirectLink, TagLink
 from rgb_logseq.page import Page, parse_page_text
 from rgb_logseq.property import Property
 
@@ -199,6 +199,12 @@ def path_to_page(path_to_graph, page_name, branch_block_line, fs):
 @pytest.fixture
 def public_page(prop_public: Property, page_name: str) -> Page:
     return parse_page_text(prop_public.raw, name=page_name)
+
+
+@pytest.fixture
+def tag_link(page_name: str) -> TagLink:
+    """Return a tag link to a graph page."""
+    return TagLink(target=page_name)
 
 
 @pytest.fixture
