@@ -171,6 +171,15 @@ def page_with_heading(faker: Faker) -> Page:
 
 
 @pytest.fixture
+def page_with_tag_link(word, faker):
+    tag_link = TagLink(target=word)
+    text_line = f"- #{word}"
+    page = parse_page_text(text_line, name=generate_page_name(faker))
+
+    return page, tag_link
+
+
+@pytest.fixture
 def page_with_tags(page: Page, prop_tags: Property) -> Page:
     """Return a Page with tags."""
     page.properties["tags"] = prop_tags

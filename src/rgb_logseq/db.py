@@ -64,6 +64,19 @@ def save_graph_blocks(graph: Graph, conn: kuzu.Connection) -> None:
         """
     )
 
+    tag_links = graph_block_info["tag_links"]
+    logger.info("Saving %s tag links", len(tag_links))
+
+    if len(tag_links):
+        conn.execute(
+            """
+                COPY LinksAsTag FROM (
+                    LOAD FROM tag_links
+                    RETURN cast(source, 'UUID'), target
+                )
+            """
+        )
+
     block_properties = graph_block_info["block_properties"]
     logger.info("Saving %s block properties", len(block_properties))
     conn.execute(

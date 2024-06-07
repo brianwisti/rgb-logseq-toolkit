@@ -147,6 +147,12 @@ class TestLineLinks:
 
 
 class TestLineTagLinks:
+    def test_direct_links_are_not_tags(self, word):
+        text_line = f"[[{word}]]"
+        line = parse_line(text_line)
+
+        assert not line.tag_links
+
     def test_tagged_word_standalone(self, word):
         text_line = f"#{word}"
         line = parse_line(text_line)

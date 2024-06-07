@@ -156,6 +156,14 @@ class TestGraphPageTags:
             assert tag in pages
 
 
+class TestGraphTagLinks:
+    def test_placeholders_created_for_tags(self, graph, page_with_tag_link):
+        page, tag_link = page_with_tag_link
+        graph.add_page(page)
+
+        assert tag_link.target in graph.pages
+
+
 class TestGraphPageNamespaces:
     def test_page_created_for_namespace(self, graph: Graph, page_in_namespace: Page):
         graph.add_page(page_in_namespace)

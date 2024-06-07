@@ -44,3 +44,7 @@ create rel table BlockHasProperty(
 create rel table Links(
     from Block to Page
 );
+
+create rel table LinksAsTag(
+    from Block to Page
+);

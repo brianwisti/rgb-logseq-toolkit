@@ -20,7 +20,7 @@ from .property import Property
 
 LINK_PATTERN = re.compile(
     r"""
-        (?<! ` | \# )
+        (?<! [`\#] )
         \[\[
             (?P<target>[^\]]+)
         \]\]
@@ -32,9 +32,11 @@ TAG_LINK_PATTERN = re.compile(
     r"""
         (?<! ` )
         \#
-        ( \w+ )
-        |
-        (?: \[\[ ( [^\]]+ ) \]\])
+        (?:
+            ( \w+ )
+            |
+            (?: \[\[ ( [^\]]+ ) \]\])
+        )
         (?<! ` )
     """,
     re.VERBOSE,
@@ -148,16 +150,20 @@ class Line(BaseModel):
         """Return a list of tag links contained in this line."""
         tag_links = []
         tag_link_matches = TAG_LINK_PATTERN.findall(self.content)
-        print(tag_link_matches)
 
-        for as_link, as_word in tag_link_matches:
-            target = as_word if as_word else as_link
-            logger.info("using <%s> as tag target from: %s", target, self.raw)
+        if tag_link_matches:
+            logger.debug("Found tags in: %s", self.content)
 
-            if not target:
-                logger.error("Tag link without target in matches: %s", tag_link_matches)
+            for as_link, as_word in tag_link_matches:
+                target = as_word if as_word else as_link
+                logger.debug("using <%s> as tag target", target)
 
-            tag_links.append(TagLink(target=target))
+                if not target:
+                    logger.error(
+                        "Tag link without target in matches: %s", tag_link_matches
+                    )
+
+                tag_links.append(TagLink(target=target))
 
         return tag_links
 

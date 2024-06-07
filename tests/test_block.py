@@ -268,9 +268,10 @@ class TestBlockLinks:
 
 
 class TestBlockTagLinks:
-    def test_listing(self, word):
-        line = parse_line(f"#{word}")
+    def test_listing(self):
+        text_line = "- [Standard Ebooks](https://standardebooks.org/) #Read"
+        line = parse_line(text_line)
         block = from_lines([line])
         targets = [link.target for link in block.tag_links]
 
-        assert word in targets
+        assert "Read" in targets

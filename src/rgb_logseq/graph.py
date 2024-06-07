@@ -68,30 +68,34 @@ class Graph(BaseModel):
                 raise DuplicatePageNameError(page.name)
 
         self.pages[page.name] = page
+        placeholders_needed = []
 
         if page.namespace != NAMESPACE_SELF and page.namespace not in self.pages:
-            self.add_placeholder(page.namespace)
+            placeholders_needed.append(page.namespace)
 
-        missing_links = [
+        placeholders_needed += [
             link.target for link in page.links if link.target not in self.pages
         ]
-        self.add_placeholders(missing_links)
-
-        missing_tags = [tag for tag in page.tags if tag not in self.pages]
-        self.add_placeholders(missing_tags)
-
-        missing_page_props = [
-            prop for prop in page.properties if prop not in self.pages
-        ]
-        self.add_placeholders(missing_page_props)
 
         for block in page.blocks:
-            missing_props = [
+            for tag_link in block.tag_links:
+                if tag_link.target not in self.pages:
+                    placeholders_needed.append(tag_link.target)
+
+        placeholders_needed += [tag for tag in page.tags if tag not in self.pages]
+
+        placeholders_needed += [
+            prop for prop in page.properties if prop not in self.pages
+        ]
+
+        for block in page.blocks:
+            placeholders_needed += [
                 block_prop
                 for block_prop in block.properties
                 if block_prop not in self.pages
             ]
-            self.add_placeholders(missing_props)
+
+        self.add_placeholders(placeholders_needed)
 
     def add_placeholder(self, page_name: str) -> None:
         """Remember a Page name without requiring a full Page."""
@@ -147,6 +151,7 @@ def load_graph_blocks(graph: Graph) -> dict[str, pd.DataFrame]:
     """Load block info from the graph."""
     blocks = []
     links = []
+    tag_links: list[dict[str, str]] = []
     page_memberships = []
     block_properties = []
     block_branches = []
@@ -187,6 +192,9 @@ def load_graph_blocks(graph: Graph) -> dict[str, pd.DataFrame]:
             for link in block_info.links:
                 links.append({"source": block_id, "target": link.target})
 
+            for tag_link in block_info.tag_links:
+                tag_links.append({"source": block_id, "target": link.target})
+
             for prop_name, prop in block_info.properties.items():
                 block_properties.append(
                     {
@@ -200,6 +208,7 @@ def load_graph_blocks(graph: Graph) -> dict[str, pd.DataFrame]:
         "blocks": pd.DataFrame(blocks),
         "branches": pd.DataFrame(block_branches),
         "links": pd.DataFrame(links),
+        "tag_links": pd.DataFrame(tag_links),
         "page_memberships": pd.DataFrame(page_memberships),
         "block_properties": pd.DataFrame(block_properties),
     }
