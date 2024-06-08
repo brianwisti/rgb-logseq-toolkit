@@ -258,17 +258,21 @@ class TestLoadDirectiveBlock:
             _ = from_lines(lines)
 
 
-class TestBlockLinks:
-    def test_listing_links(self, line_with_link):
+class TestLinks:
+    def test_listing_block_links(self, branch_block):
+        text_line = f"- (({branch_block.id.hex}))"
+        block = from_lines([Line(raw=text_line)])
+
+        assert branch_block.id in [link.target for link in block.block_links]
+
+    def test_listing_page_links(self, line_with_link):
         line, link = line_with_link
         block = from_lines([line])
         targets = [link.target for link in block.links]
 
         assert link.target in targets
 
-
-class TestBlockTagLinks:
-    def test_listing(self):
+    def test_listing_tag_links(self):
         text_line = "- [Standard Ebooks](https://standardebooks.org/) #Read"
         line = parse_line(text_line)
         block = from_lines([line])

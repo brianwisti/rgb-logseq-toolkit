@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field, computed_field
 
 from .const import logger
 from .line import Line, parse_line
-from .link import DirectLink
+from .link import BlockLink, DirectLink
 from .property import Property, ValueList
 
 ATX_HEADER = re.compile(
@@ -44,6 +44,22 @@ class Block(BaseModel):
         return "\n".join(
             [block_line.content for block_line in self.lines if block_line.is_content]
         )
+
+    @property
+    def block_links(self) -> list[BlockLink]:
+        """Return a list of all block links found in this block."""
+        gathered = []
+        in_code = False
+
+        for line in self.lines:
+            if line.is_code_fence:
+                in_code = not in_code
+
+            if not in_code:
+                for link in line.block_links:
+                    gathered.append(link)
+
+        return gathered
 
     @property
     def depth(self) -> int:
