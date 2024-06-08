@@ -279,3 +279,11 @@ class TestLinks:
         targets = [link.target for link in block.tag_links]
 
         assert "Read" in targets
+
+    def test_listing_resource_links(self, resource_link):
+        text_line = f"- [{resource_link.link_text}]({resource_link.target})"
+        line = parse_line(text_line)
+        block = from_lines([line])
+
+        targets = [link.target for link in block.resource_links]
+        assert resource_link.target in targets

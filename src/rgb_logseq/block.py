@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field, computed_field
 
 from .const import logger
 from .line import Line, parse_line
-from .link import BlockLink, DirectLink
+from .link import BlockLink, DirectLink, ResourceLink
 from .property import Property, ValueList
 
 ATX_HEADER = re.compile(
@@ -130,6 +130,22 @@ class Block(BaseModel):
     def raw(self) -> str:
         """Return the raw content of this Block's lines as a newline-separated string."""
         return "\n".join([block_line.raw for block_line in self.lines])
+
+    @property
+    def resource_links(self) -> list[ResourceLink]:
+        """Return a list of all resource links found in this block."""
+        gathered = []
+        in_code = False
+
+        for line in self.lines:
+            if line.is_code_fence:
+                in_code = not in_code
+
+            if not in_code:
+                for link in line.resource_links:
+                    gathered.append(link)
+
+        return gathered
 
     @property
     def tag_links(self) -> list[DirectLink]:

@@ -8,7 +8,7 @@ from faker import Faker
 
 from rgb_logseq import line
 from rgb_logseq.block import Block, find_blocks
-from rgb_logseq.link import DirectLink
+from rgb_logseq.link import DirectLink, ResourceLink
 from rgb_logseq.page import Page, parse_page_text
 from rgb_logseq.property import Property
 
@@ -241,6 +241,14 @@ def linked_pages(page: Page, graph_link: DirectLink, faker: Faker) -> LinkedPage
 def range_cap(faker: Faker) -> int:
     """Return an arbitrary limit on range for test collections."""
     return int(faker.random_int(min=2, max=RANGE_MAX))
+
+
+@pytest.fixture
+def resource_link(faker: Faker) -> ResourceLink:
+    target = faker.uri()
+    link_text = faker.word()
+
+    return ResourceLink(target=target, link_text=link_text)
 
 
 @pytest.fixture
