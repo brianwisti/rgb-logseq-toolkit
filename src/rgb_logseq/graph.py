@@ -1,11 +1,15 @@
 """Logseq graph module."""
 
-import pandas as pd
+import uuid
 from pathlib import Path
+from typing import cast
+
+import pandas as pd
 from pydantic import BaseModel
 
 from rgb_logseq.page import load_page_file
 
+from .block import Block
 from .const import logger
 from .page import NAMESPACE_SELF, Page
 
@@ -28,6 +32,7 @@ PagePropertyMap = dict[str, dict[str, str]]
 class Graph(BaseModel):
     """An organized collection of pages."""
 
+    blocks: dict[uuid.UUID, Block] = {}
     pages: dict[str, Page] = {}
 
     @property
@@ -78,6 +83,9 @@ class Graph(BaseModel):
         ]
 
         for block in page.blocks:
+            block_id = cast(uuid.UUID, block.id)
+            self.blocks[block_id] = block
+
             for tag_link in block.tag_links:
                 if tag_link.target not in self.pages:
                     placeholders_needed.append(tag_link.target)
@@ -152,11 +160,13 @@ def load_graph_blocks(graph: Graph) -> dict[str, pd.DataFrame]:
     blocks = []
     links = []
     tag_links: list[dict[str, str]] = []
+    block_links: list[dict[str, str]] = []
     page_memberships = []
     block_properties = []
     block_branches = []
 
     for page_name, page in graph.pages.items():
+        logger.debug("Loading graph blocks from page: %s", page_name)
         # Building a map of newest branches seen at each level,
         # which provides an extremely narrow map of the tree from
         # the perspective of the current block.
@@ -195,6 +205,22 @@ def load_graph_blocks(graph: Graph) -> dict[str, pd.DataFrame]:
             for tag_link in block_info.tag_links:
                 tag_links.append({"source": block_id, "target": link.target})
 
+            for block_link in block_info.block_links:
+                if block_link.target in graph.blocks:
+                    logger.debug(
+                        "page <%s> links to block: %s", page_name, block_link.target
+                    )
+                    block_links.append(
+                        {"source": block_id, "target": str(block_link.target)}
+                    )
+                else:
+                    logger.warning(
+                        "page <%s> links to nonexistent block <%s> in: %s",
+                        page_name,
+                        block_link.target,
+                        block_info.content,
+                    )
+
             for prop_name, prop in block_info.properties.items():
                 block_properties.append(
                     {
@@ -209,6 +235,7 @@ def load_graph_blocks(graph: Graph) -> dict[str, pd.DataFrame]:
         "branches": pd.DataFrame(block_branches),
         "links": pd.DataFrame(links),
         "tag_links": pd.DataFrame(tag_links),
+        "block_links": pd.DataFrame(block_links),
         "page_memberships": pd.DataFrame(page_memberships),
         "block_properties": pd.DataFrame(block_properties),
     }

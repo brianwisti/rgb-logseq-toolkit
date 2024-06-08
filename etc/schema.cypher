@@ -48,3 +48,7 @@ create rel table Links(
 create rel table LinksAsTag(
     from Block to Page
 );
+
+create rel table LinksToBlock(
+    from Block to Block
+);

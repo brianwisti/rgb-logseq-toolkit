@@ -67,9 +67,14 @@ class Line(BaseModel):
     @property
     def block_links(self) -> list[BlockLink]:
         """Return a list of links to specific blocks in this Line."""
-        link_matches = BLOCK_LINK_PATTERN.findall(self.content)
+        gathered = []
 
-        return [BlockLink(target=uuid.UUID(target)) for target in link_matches]
+        for target in BLOCK_LINK_PATTERN.findall(self.content):
+            target = target.replace("-", "")
+            target_id = uuid.UUID(target)
+            gathered.append(BlockLink(target=target_id))
+
+        return gathered
 
     @property
     def content(self) -> str:

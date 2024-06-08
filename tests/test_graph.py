@@ -13,11 +13,11 @@ def graph():
     return Graph()
 
 
-class TestGraphPages:
-    def test_empty_graph(self):
-        graph = Graph()
+def test_empty_graph():
+    graph = Graph()
 
-        assert not graph.pages
+    assert not graph.pages
+    assert not graph.blocks
 
 
 class TestGraphPageManagement:
@@ -28,6 +28,12 @@ class TestGraphPageManagement:
         graph.add_page(page)
 
         assert graph.has_page(page.name)
+
+    def test_add_page_notes_blocks(self, graph, page):
+        graph.add_page(page)
+
+        for block in page.blocks:
+            assert block.id in graph.blocks
 
     def test_adding_placeholder_page(self, graph, page_name):
         graph.add_placeholder(page_name)
