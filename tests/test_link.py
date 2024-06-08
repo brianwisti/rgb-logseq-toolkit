@@ -1,6 +1,9 @@
 """Test graph links."""
 
-from rgb_logseq.link import BlockLink, DirectLink, LinkType
+import pytest
+from pydantic import ValidationError
+
+from rgb_logseq.link import BlockLink, DirectLink, LinkType, ResourceLink
 
 
 class TestDirectLink:
@@ -35,3 +38,9 @@ class TestBlockLink:
         link = BlockLink(target=branch_block.id)
 
         assert link.target == branch_block.id
+
+
+class TestResourceLink:
+    def test_link_text_is_required(self, faker):
+        with pytest.raises(ValidationError):
+            _ = ResourceLink(target=faker.word())

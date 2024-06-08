@@ -197,3 +197,14 @@ class TestLineTagLinks:
         line = parse_line(text_line)
 
         assert not any(link for link in line.links if link.target == word)
+
+
+class TestResourceLink:
+    def test_link_stored(self, faker):
+        target = faker.uri()
+        label = faker.word()
+        text_line = f"- [{label}]({target})"
+        line = parse_line(text_line)
+
+        assert line.resource_links
+        assert any(link for link in line.resource_links if link.target == target)

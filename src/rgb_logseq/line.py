@@ -16,7 +16,7 @@ from .const import (
     MARK_PROPERTY,
     logger,
 )
-from .link import BlockLink, DirectLink
+from .link import BlockLink, DirectLink, ResourceLink
 from .property import Property
 
 LINK_PATTERN = re.compile(
@@ -35,6 +35,18 @@ BLOCK_LINK_PATTERN = re.compile(
         \(\(
             (?P<target>[^\)]+)
         \)\)
+    """,
+    re.VERBOSE,
+)
+
+RESOURCE_LINK_PATTERN = re.compile(
+    r"""
+        \[
+            ( .+ )
+        \]
+        \(
+            ( .+ )
+        \)
     """,
     re.VERBOSE,
 )
@@ -167,6 +179,29 @@ class Line(BaseModel):
         """Return a list of graph links contained in this Line."""
         link_matches = LINK_PATTERN.findall(self.content)
         return [DirectLink.to_page(target) for target in link_matches]
+
+    @property
+    def resource_links(self) -> list[ResourceLink]:
+        """Return a list of links to assets and external resources."""
+        logger.debug("Looking for resource links in: %s", self.content)
+        resource_links = []
+        resource_link_matches = RESOURCE_LINK_PATTERN.findall(self.content)
+
+        if resource_link_matches:
+            logger.debug("Found resource link: %s", resource_link_matches)
+
+            for link_text, target in resource_link_matches:
+                logger.debug("using <%s> as resource target", target)
+
+                if not target:
+                    logger.error(
+                        "resource link without target in matches: %s",
+                        resource_link_matches,
+                    )
+
+                resource_links.append(ResourceLink(target=target, link_text=link_text))
+
+        return resource_links
 
     @property
     def tag_links(self) -> list[DirectLink]:

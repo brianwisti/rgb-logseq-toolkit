@@ -43,3 +43,10 @@ class BlockLink(BaseModel):
     """An explicit connection to a Block on the Graph."""
 
     target: uuid.UUID
+
+
+class ResourceLink(BaseModel):
+    """A connection to a resource outside the graph pages."""
+
+    target: str
+    link_text: str
