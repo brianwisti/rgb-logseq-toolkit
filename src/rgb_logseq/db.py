@@ -112,6 +112,23 @@ def save_graph_blocks(graph: Graph, conn: kuzu.Connection) -> None:
             """
         )
 
+    resources = graph_block_info["resources"]
+    logger.info("Saving %s resources", len(resources))
+    conn.execute("COPY Resource FROM (LOAD FROM resources RETURN *)")
+
+    resource_links = graph_block_info["resource_links"]
+    logger.info("Saving %s resource links", len(resource_links))
+
+    if len(resource_links):
+        conn.execute(
+            """
+                COPY LinksToResource FROM (
+                    LOAD FROM resource_links
+                    RETURN cast(source, 'UUID'), target, label
+                )
+            """
+        )
+
     logger.info("Finished saving block data.")
 
 

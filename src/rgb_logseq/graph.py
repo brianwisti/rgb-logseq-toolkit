@@ -164,6 +164,9 @@ def load_graph_blocks(graph: Graph) -> dict[str, pd.DataFrame]:
     page_memberships = []
     block_properties = []
     block_branches = []
+    resources_seen = set()
+    resources: list[dict[str, str]] = []
+    resource_links: list[dict[str, str]] = []
 
     for page_name, page in graph.pages.items():
         logger.debug("Loading graph blocks from page: %s", page_name)
@@ -202,6 +205,16 @@ def load_graph_blocks(graph: Graph) -> dict[str, pd.DataFrame]:
             for link in block_info.links:
                 links.append({"source": block_id, "target": link.target})
 
+            for resource_link in block_info.resource_links:
+                resources_seen.add(resource_link.target)
+                resource_links.append(
+                    {
+                        "source": block_id,
+                        "target": resource_link.target,
+                        "label": resource_link.link_text,
+                    }
+                )
+
             for tag_link in block_info.tag_links:
                 tag_links.append({"source": block_id, "target": link.target})
 
@@ -230,6 +243,7 @@ def load_graph_blocks(graph: Graph) -> dict[str, pd.DataFrame]:
                     }
                 )
 
+    resources = [{"uri": resource} for resource in resources_seen]
     return {
         "blocks": pd.DataFrame(blocks),
         "branches": pd.DataFrame(block_branches),
@@ -238,6 +252,8 @@ def load_graph_blocks(graph: Graph) -> dict[str, pd.DataFrame]:
         "block_links": pd.DataFrame(block_links),
         "page_memberships": pd.DataFrame(page_memberships),
         "block_properties": pd.DataFrame(block_properties),
+        "resources": pd.DataFrame(resources),
+        "resource_links": pd.DataFrame(resource_links),
     }
 
 

@@ -52,3 +52,14 @@ create rel table LinksAsTag(
 create rel table LinksToBlock(
     from Block to Block
 );
+
+create node table Resource(
+    uri string,
+    primary key(uri)
+);
+
+create rel table LinksToResource(
+    from Block to Resource,
+    label string
+);
+
