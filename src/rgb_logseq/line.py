@@ -1,6 +1,7 @@
 """Logseq line parsing logic."""
 
 import re
+import uuid
 
 from pydantic import BaseModel
 
@@ -15,7 +16,7 @@ from .const import (
     MARK_PROPERTY,
     logger,
 )
-from .link import DirectLink
+from .link import BlockLink, DirectLink
 from .property import Property
 
 LINK_PATTERN = re.compile(
@@ -24,7 +25,17 @@ LINK_PATTERN = re.compile(
         \[\[
             (?P<target>[^\]]+)
         \]\]
-                          """,
+    """,
+    re.VERBOSE,
+)
+
+BLOCK_LINK_PATTERN = re.compile(
+    r"""
+        (?<! [`\#] )
+        \(\(
+            (?P<target>[^\)]+)
+        \)\)
+    """,
     re.VERBOSE,
 )
 
@@ -52,6 +63,13 @@ class Line(BaseModel):
     """
 
     raw: str
+
+    @property
+    def block_links(self) -> list[BlockLink]:
+        """Return a list of links to specific blocks in this Line."""
+        link_matches = BLOCK_LINK_PATTERN.findall(self.content)
+
+        return [BlockLink(target=uuid.UUID(target)) for target in link_matches]
 
     @property
     def content(self) -> str:

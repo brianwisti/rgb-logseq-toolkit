@@ -116,6 +116,14 @@ class TestDirectiveLine:
         assert line.directive == quote_directive_pair.directive
 
 
+class TestLineBlockLinks:
+    def test_block_link_parsed(self, branch_block):
+        text_line = f"- (({branch_block.id.hex}))"
+        line = parse_line(text_line)
+
+        assert any(link for link in line.block_links if link.target == branch_block.id)
+
+
 class TestLineLinks:
     def test_standalone_link_parsed(self, graph_link):
         text_line = as_page_link(graph_link)
