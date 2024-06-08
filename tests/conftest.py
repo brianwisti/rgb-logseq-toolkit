@@ -8,7 +8,7 @@ from faker import Faker
 
 from rgb_logseq import line
 from rgb_logseq.block import Block, find_blocks
-from rgb_logseq.link import DirectLink, TagLink
+from rgb_logseq.link import DirectLink
 from rgb_logseq.page import Page, parse_page_text
 from rgb_logseq.property import Property
 
@@ -74,7 +74,7 @@ def generate_graph_link(faker: Faker) -> DirectLink:
     """Return a DirectLink usable by fixtures."""
     target = generate_page_name(faker)
 
-    return DirectLink(target=target)
+    return DirectLink.to_page(target)
 
 
 def generate_page_name(faker: Faker) -> str:
@@ -107,7 +107,7 @@ def code_fence() -> str:
 @pytest.fixture
 def graph_link(page_name: str) -> DirectLink:
     """Return a direct link to a graph page."""
-    return DirectLink(target=page_name)
+    return DirectLink.to_page(page_name)
 
 
 @pytest.fixture
@@ -127,7 +127,7 @@ def labeled_graph_link(page_name: str, faker: Faker) -> DirectLink:
     """Return a link to a graph page using a custom label."""
     label = faker.word()
 
-    return DirectLink(target=page_name, link_text=label)
+    return DirectLink.to_page(page_name, link_text=label)
 
 
 @pytest.fixture
@@ -172,7 +172,7 @@ def page_with_heading(faker: Faker) -> Page:
 
 @pytest.fixture
 def page_with_tag_link(word, faker):
-    tag_link = TagLink(target=word)
+    tag_link = DirectLink.as_tag(word)
     text_line = f"- #{word}"
     page = parse_page_text(text_line, name=generate_page_name(faker))
 
@@ -211,9 +211,9 @@ def public_page(prop_public: Property, page_name: str) -> Page:
 
 
 @pytest.fixture
-def tag_link(page_name: str) -> TagLink:
+def tag_link(page_name: str) -> DirectLink:
     """Return a tag link to a graph page."""
-    return TagLink(target=page_name)
+    return DirectLink.as_tag(page_name)
 
 
 @pytest.fixture

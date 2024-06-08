@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field, computed_field
 
 from .const import logger
 from .line import Line, parse_line
-from .link import DirectLink, TagLink
+from .link import DirectLink
 from .property import Property, ValueList
 
 ATX_HEADER = re.compile(
@@ -116,7 +116,7 @@ class Block(BaseModel):
         return "\n".join([block_line.raw for block_line in self.lines])
 
     @property
-    def tag_links(self) -> list[TagLink]:
+    def tag_links(self) -> list[DirectLink]:
         """Return a list of all tag links found in this block."""
         gathered = []
         in_code = False

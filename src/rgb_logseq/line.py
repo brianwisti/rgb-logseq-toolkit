@@ -15,7 +15,7 @@ from .const import (
     MARK_PROPERTY,
     logger,
 )
-from .link import DirectLink, TagLink
+from .link import DirectLink
 from .property import Property
 
 LINK_PATTERN = re.compile(
@@ -143,10 +143,10 @@ class Line(BaseModel):
     def links(self) -> list[DirectLink]:
         """Return a list of graph links contained in this Line."""
         link_matches = LINK_PATTERN.findall(self.content)
-        return [DirectLink(target=target) for target in link_matches]
+        return [DirectLink.to_page(target) for target in link_matches]
 
     @property
-    def tag_links(self) -> list[TagLink]:
+    def tag_links(self) -> list[DirectLink]:
         """Return a list of tag links contained in this line."""
         tag_links = []
         tag_link_matches = TAG_LINK_PATTERN.findall(self.content)
@@ -163,7 +163,7 @@ class Line(BaseModel):
                         "Tag link without target in matches: %s", tag_link_matches
                     )
 
-                tag_links.append(TagLink(target=target))
+                tag_links.append(DirectLink.as_tag(target))
 
         return tag_links
 
