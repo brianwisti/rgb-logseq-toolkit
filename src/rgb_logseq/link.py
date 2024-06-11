@@ -50,3 +50,4 @@ class ResourceLink(BaseModel):
 
     target: str
     link_text: str
+    is_embed: bool = False

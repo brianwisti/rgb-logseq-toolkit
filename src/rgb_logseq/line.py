@@ -41,11 +41,12 @@ BLOCK_LINK_PATTERN = re.compile(
 
 RESOURCE_LINK_PATTERN = re.compile(
     r"""
+        (?P<is_embed> !)?
         \[
-            ( .+ )
+            (?P<label> .+ )
         \]
         \(
-            ( .+ )
+            (?P<uri> .+ )
         \)
     """,
     re.VERBOSE,
@@ -187,19 +188,25 @@ class Line(BaseModel):
         resource_links = []
         resource_link_matches = RESOURCE_LINK_PATTERN.findall(self.content)
 
-        if resource_link_matches:
-            logger.debug("Found resource link: %s", resource_link_matches)
+        for match in RESOURCE_LINK_PATTERN.finditer(self.content):
 
-            for link_text, target in resource_link_matches:
-                logger.debug("using <%s> as resource target", target)
+            logger.debug("Found resource link: %s", match)
+            link_text = match.group("label")
+            target = match.group("uri")
+            is_embed = match.group("is_embed")
 
-                if not target:
-                    logger.error(
-                        "resource link without target in matches: %s",
-                        resource_link_matches,
-                    )
+            logger.debug("using <%s> as resource target", target)
 
-                resource_links.append(ResourceLink(target=target, link_text=link_text))
+            if not target:
+                logger.error(
+                    "resource link without target in matches: %s",
+                    resource_link_matches,
+                )
+
+            embed_flag = True if is_embed else False
+            resource_links.append(
+                ResourceLink(target=target, link_text=link_text, is_embed=embed_flag)
+            )
 
         return resource_links
 

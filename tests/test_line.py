@@ -146,7 +146,6 @@ class TestLineLinks:
 
         assert not line.links
 
-    @pytest.mark.xfail(reason="needs smarter parsing")
     def test_link_in_inline_code_ignored(self, word):
         text_line = f"`Hello [[{word}]] World`"
         line = parse_line(text_line)
@@ -208,3 +207,15 @@ class TestResourceLink:
 
         assert line.resource_links
         assert any(link for link in line.resource_links if link.target == target)
+
+    def test_markdown_embeds(self, faker):
+        image_file = faker.file_name(category="image")
+        image_path = f"../assets/{image_file}"
+        text_line = f"- ![{image_file}]({image_path})"
+        line = parse_line(text_line)
+        matched_links = [
+            link for link in line.resource_links if link.target == image_path
+        ]
+
+        assert matched_links
+        assert matched_links[0].is_embed
