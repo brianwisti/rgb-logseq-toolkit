@@ -11,6 +11,11 @@ class Asset(BaseModel):
     path: Path
 
     @property
+    def exists(self) -> bool:
+        """Return whether the asset file exists."""
+        return self.path.exists()
+
+    @property
     def name(self) -> str:
         """Return the asset file name."""
         return self.path.stem
