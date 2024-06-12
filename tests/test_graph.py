@@ -3,7 +3,12 @@
 import pytest
 from pathlib import Path
 
-from rgb_logseq.graph import DuplicatePageNameError, Graph, load_graph
+from rgb_logseq.graph import (
+    DuplicateAssetError,
+    DuplicatePageNameError,
+    Graph,
+    load_graph,
+)
 from rgb_logseq.page import NAMESPACE_SELF, Page
 
 
@@ -18,6 +23,24 @@ def test_empty_graph():
 
     assert not graph.pages
     assert not graph.blocks
+
+
+class TestGraphAssetManagement:
+    def test_empty_assets(self, graph):
+        assert not graph.assets
+
+    def test_add_asset(self, graph, asset_path):
+        asset = graph.add_asset(asset_path)
+
+        assert asset.path == asset_path
+        assert asset.name in graph.assets
+        assert graph.assets[asset.name].path == asset_path
+
+    def test_duplicate_asset_is_error(self, graph, asset_path):
+        graph.add_asset(asset_path)
+
+        with pytest.raises(DuplicateAssetError):
+            graph.add_asset(asset_path)
 
 
 class TestGraphPageManagement:

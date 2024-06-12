@@ -9,9 +9,14 @@ from pydantic import BaseModel
 
 from rgb_logseq.page import load_page_file
 
+from .asset import Asset
 from .block import Block
 from .const import logger
 from .page import NAMESPACE_SELF, Page
+
+
+class DuplicateAssetError(Exception):
+    """Error raised when overwriting an existing asset in a Graph."""
 
 
 class DuplicatePageNameError(Exception):
@@ -34,6 +39,7 @@ class Graph(BaseModel):
 
     blocks: dict[uuid.UUID, Block] = {}
     pages: dict[str, Page] = {}
+    assets: dict[str, Asset] = {}
 
     @property
     def page_properties(self) -> PagePropertyMap:
@@ -60,6 +66,19 @@ class Graph(BaseModel):
                 tags[tag] = page_list
 
         return tags
+
+    def add_asset(self, path: Path) -> Asset:
+        """Add an asset to the Graph."""
+        logger.debug("Adding asset to graph: %s", path)
+        asset = Asset(path=path)
+
+        if asset.name in self.assets:
+            logger.error("Adding duplicate asset: %s", path)
+            raise DuplicateAssetError(asset.name)
+
+        self.assets[asset.name] = asset
+
+        return asset
 
     def add_page(self, page: Page) -> None:
         """Add a Page to the Graph."""

@@ -91,6 +91,11 @@ def generate_text_line(faker: Faker) -> str:
 
 
 @pytest.fixture
+def asset_path(faker):
+    return Path(faker.file_path())
+
+
+@pytest.fixture
 def branch_block(text_line: str) -> Block:
     """Return a one-line branch Block."""
     branch_block_line = as_branch_block(text_line)
