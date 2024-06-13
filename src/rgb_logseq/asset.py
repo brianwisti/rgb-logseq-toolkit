@@ -17,5 +17,5 @@ class Asset(BaseModel):
 
     @property
     def name(self) -> str:
-        """Return the asset file name."""
-        return self.path.stem
+        """Return the asset file name as identified by page links."""
+        return f"../assets/{self.path.name}"

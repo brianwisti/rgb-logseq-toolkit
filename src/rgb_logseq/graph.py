@@ -42,6 +42,21 @@ class Graph(BaseModel):
     assets: dict[str, Asset] = {}
 
     @property
+    def asset_links(self) -> list[dict[str, object]]:
+        """Return all asset links in the graph."""
+        asset_links = []
+
+        for page in self.pages.values():
+            for block in page.blocks:
+                for resource_link in block.resource_links:
+                    if resource_link.target in self.assets:
+                        asset_links.append(
+                            {"source": block.id, "target": resource_link.target}
+                        )
+
+        return asset_links
+
+    @property
     def page_properties(self) -> PagePropertyMap:
         """Return information about all page-level properties in the graph."""
         properties: PagePropertyMap = {}
@@ -159,17 +174,23 @@ class Graph(BaseModel):
 def load_graph(graph_path: Path) -> Graph:
     """Load pages in Graph."""
     logger.debug("path: %s", graph_path)
+    asset_folders = ["assets"]
     page_folders = ["journals", "pages"]
     page_glob = "./**/*.md"
     graph = Graph()
 
-    for folder in page_folders:
-        subfolder = graph_path / folder
+    for page_folder in page_folders:
+        subfolder = graph_path / page_folder
         for md_path in subfolder.glob(page_glob):
             logger.debug("md path: %s", md_path)
             page = load_page_file(md_path)
             logger.debug("page: %s", page)
             graph.add_page(page)
+
+    for asset_folder in asset_folders:
+        subfolder = graph_path / asset_folder
+        for asset_path in subfolder.glob("*"):
+            graph.add_asset(asset_path)
 
     return graph
 

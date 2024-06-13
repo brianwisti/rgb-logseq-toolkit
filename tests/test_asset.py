@@ -9,7 +9,7 @@ def test_asset_creation(asset_path: Path):
     asset = Asset(path=asset_path)
 
     assert asset.path == asset_path
-    assert asset.name == asset_path.stem
+    assert asset.name == f"../assets/{asset_path.name}"
 
 
 class TestAssetFileHandling:

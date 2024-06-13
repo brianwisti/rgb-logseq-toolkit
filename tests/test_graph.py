@@ -9,7 +9,7 @@ from rgb_logseq.graph import (
     Graph,
     load_graph,
 )
-from rgb_logseq.page import NAMESPACE_SELF, Page
+from rgb_logseq.page import NAMESPACE_SELF, Page, parse_page_text
 
 
 @pytest.fixture
@@ -30,9 +30,11 @@ class TestGraphAssetManagement:
         assert not graph.assets
 
     def test_add_asset(self, graph, asset_path):
+        expected_name = f"../assets/{asset_path.name}"
         asset = graph.add_asset(asset_path)
 
         assert asset.path == asset_path
+        assert asset.name == expected_name
         assert asset.name in graph.assets
         assert graph.assets[asset.name].path == asset_path
 
@@ -41,6 +43,19 @@ class TestGraphAssetManagement:
 
         with pytest.raises(DuplicateAssetError):
             graph.add_asset(asset_path)
+
+    def test_empty_asset_links(self, graph: Graph):
+        assert not graph.asset_links
+
+    def test_asset_links(self, graph, asset_path):
+        asset = graph.add_asset(asset_path)
+        text_line = f"- ![image]({asset.name})"
+        page = parse_page_text(text_line, name="test")
+        graph.add_page(page)
+
+        assert graph.asset_links
+        print(graph.asset_links)
+        assert any(link for link in graph.asset_links if link["target"] == asset.name)
 
 
 class TestGraphPageManagement:
