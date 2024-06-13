@@ -44,3 +44,21 @@ class TestResourceLink:
     def test_link_text_is_required(self, faker):
         with pytest.raises(ValidationError):
             _ = ResourceLink(target=faker.word())
+
+    def test_local_file_is_asset(self, asset_path):
+        link_text = asset_path.name
+        link = ResourceLink(target=str(asset_path), link_text=link_text)
+
+        assert link.is_asset_file
+
+    def test_uri_is_not_asset(self, faker):
+        link_text = faker.word()
+        link = ResourceLink(target=faker.uri(), link_text=link_text)
+
+        assert not link.is_asset_file
+
+    def test_external_file_is_error(self, faker):
+        link_text = faker.word()
+        link_path = faker.file_path()
+        with pytest.raises(ValidationError):
+            _ = ResourceLink(target=link_path, link_text=link_text, is_embed=True)

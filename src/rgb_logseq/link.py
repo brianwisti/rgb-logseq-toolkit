@@ -3,7 +3,9 @@
 import uuid
 from enum import Enum
 
-from pydantic import BaseModel
+from pydantic import AnyUrl, BaseModel, computed_field, field_validator
+
+PATH_ASSETS = "../assets"
 
 
 class LinkType(Enum):
@@ -51,3 +53,23 @@ class ResourceLink(BaseModel):
     target: str
     link_text: str
     is_embed: bool = False
+
+    @computed_field
+    def is_asset_file(self) -> bool:
+        """Return whether the resource is an asset file."""
+        return self.target.startswith(PATH_ASSETS)
+
+    @field_validator("target")
+    def target_is_asset_file_or_uri(cls, v: str):
+        """Ensure the target is a file or URI."""
+        if v.startswith(PATH_ASSETS):
+            return v
+
+        try:
+            _ = AnyUrl(v)
+        except ValueError:
+            raise ValueError(
+                "ResourceLink target must be a valid URL or file in assets folder."
+            )
+
+        return v

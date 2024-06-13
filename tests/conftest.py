@@ -8,7 +8,7 @@ from faker import Faker
 
 from rgb_logseq import line
 from rgb_logseq.block import Block, find_blocks
-from rgb_logseq.link import DirectLink, ResourceLink
+from rgb_logseq.link import DirectLink, PATH_ASSETS, ResourceLink
 from rgb_logseq.page import Page, parse_page_text
 from rgb_logseq.property import Property
 
@@ -91,8 +91,8 @@ def generate_text_line(faker: Faker) -> str:
 
 
 @pytest.fixture
-def asset_path(faker):
-    return Path(faker.file_path())
+def asset_path(faker: Faker) -> Path:
+    return Path(PATH_ASSETS) / faker.file_name()
 
 
 @pytest.fixture
