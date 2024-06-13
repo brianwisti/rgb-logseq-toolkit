@@ -204,8 +204,9 @@ def load_graph_blocks(graph: Graph) -> dict[str, pd.DataFrame]:
     page_memberships = []
     block_properties = []
     block_branches = []
-    resources_seen = set()
-    resources: list[dict[str, str]] = []
+    assets = graph.assets
+    resources_seen: dict[str, bool] = {}
+    resources: list[dict[str, str | bool]] = []
     resource_links: list[dict[str, str]] = []
 
     for page_name, page in graph.pages.items():
@@ -246,11 +247,13 @@ def load_graph_blocks(graph: Graph) -> dict[str, pd.DataFrame]:
                 links.append({"source": block_id, "target": link.target})
 
             for resource_link in block_info.resource_links:
-                resources_seen.add(resource_link.target)
+                target = resource_link.target
+                is_asset = True if target in assets else False
+                resources_seen[target] = is_asset
                 resource_links.append(
                     {
                         "source": block_id,
-                        "target": resource_link.target,
+                        "target": target,
                         "label": resource_link.link_text,
                     }
                 )
@@ -283,7 +286,10 @@ def load_graph_blocks(graph: Graph) -> dict[str, pd.DataFrame]:
                     }
                 )
 
-    resources = [{"uri": resource} for resource in resources_seen]
+    resources = [
+        {"path": resource, "is_asset": is_asset}
+        for resource, is_asset in resources_seen.items()
+    ]
     return {
         "blocks": pd.DataFrame(blocks),
         "branches": pd.DataFrame(block_branches),

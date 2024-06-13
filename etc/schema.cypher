@@ -54,8 +54,9 @@ create rel table LinksToBlock(
 );
 
 create node table Resource(
-    uri string,
-    primary key(uri)
+    path string,
+    is_asset bool,
+    primary key(path)
 );
 
 create rel table LinksToResource(
