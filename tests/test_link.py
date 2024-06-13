@@ -62,3 +62,9 @@ class TestResourceLink:
         link_path = faker.file_path()
         with pytest.raises(ValidationError):
             _ = ResourceLink(target=link_path, link_text=link_text, is_embed=True)
+
+    @pytest.mark.parametrize(
+        "link_path", ["/index.xml", "/post/index.xml", "/journal/index.xml"]
+    )
+    def test_rss_feed_exemption(self, link_path):
+        assert ResourceLink(target=link_path, link_text=link_path)

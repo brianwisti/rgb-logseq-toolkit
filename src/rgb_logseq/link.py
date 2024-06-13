@@ -67,6 +67,9 @@ class ResourceLink(BaseModel):
         if v.startswith(PATH_ASSETS):
             return v
 
+        if v.startswith("/") and v.endswith("index.xml"):
+            return v
+
         try:
             _ = AnyUrl(v)
         except ValueError:
