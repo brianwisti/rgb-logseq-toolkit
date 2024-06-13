@@ -208,6 +208,17 @@ class TestResourceLink:
         assert line.resource_links
         assert any(link for link in line.resource_links if link.target == target)
 
+    def test_extra_parens_ignored(self, faker):
+        target = faker.uri()
+        label = faker.word()
+        aside = faker.sentence()
+        text_line = f"- [{label}]({target}) ({aside})"
+        line = parse_line(text_line)
+
+        assert line.resource_links
+        assert not any(link for link in line.resource_links if aside in link.target)
+        assert any(link for link in line.resource_links if link.target == target)
+
     def test_markdown_embeds(self, faker):
         image_file = faker.file_name(category="image")
         image_path = f"../assets/{image_file}"

@@ -5,6 +5,8 @@ from enum import Enum
 
 from pydantic import AnyUrl, BaseModel, computed_field, field_validator
 
+from .const import logger
+
 PATH_ASSETS = "../assets"
 
 
@@ -68,6 +70,7 @@ class ResourceLink(BaseModel):
         try:
             _ = AnyUrl(v)
         except ValueError:
+            logger.error("Invalid ResourceLink: %s", v)
             raise ValueError(
                 "ResourceLink target must be a valid URL or file in assets folder."
             )

@@ -43,10 +43,10 @@ RESOURCE_LINK_PATTERN = re.compile(
     r"""
         (?P<is_embed> !)?
         \[
-            (?P<label> .+ )
+            (?P<label> .+? )
         \]
         \(
-            (?P<uri> .+ )
+            (?P<uri> .+? )
         \)
     """,
     re.VERBOSE,
