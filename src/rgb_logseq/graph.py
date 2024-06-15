@@ -211,12 +211,14 @@ def load_graph_blocks(graph: Graph) -> dict[str, pd.DataFrame]:
 
     for page_name, page in graph.pages.items():
         logger.debug("Loading graph blocks from page: %s", page_name)
+        page_memberships += page.block_memberships_for_kuzu()
+
         # Building a map of newest branches seen at each level,
         # which provides an extremely narrow map of the tree from
         # the perspective of the current block.
         block_branches_seen: dict[int, str] = {}
 
-        for position, block_info in enumerate(page.blocks):
+        for block_info in page.blocks:
             block_id = str(block_info.id)
             block_depth = block_info.depth
             block_branches_seen[block_depth] = block_id
@@ -226,22 +228,7 @@ def load_graph_blocks(graph: Graph) -> dict[str, pd.DataFrame]:
                 parent_id = block_branches_seen[parent_depth]
                 block_branches.append({"uuid": block_id, "parent": parent_id})
 
-            blocks.append(
-                {
-                    "uuid": block_id,
-                    "content": block_info.content,
-                    "is_heading": block_info.is_heading,
-                    "directive": block_info.directive,
-                }
-            )
-            page_memberships.append(
-                {
-                    "block": block_id,
-                    "page": page_name,
-                    "position": position,
-                    "depth": block_info.depth,
-                }
-            )
+            blocks.append(block_info.for_kuzu())
 
             for link in block_info.links:
                 links.append({"source": block_id, "target": link.target})

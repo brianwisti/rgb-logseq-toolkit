@@ -2,6 +2,7 @@
 
 import re
 import uuid
+from typing import cast
 
 from pydantic import BaseModel, Field, computed_field
 
@@ -171,6 +172,15 @@ class Block(BaseModel):
             return []
 
         return self.properties["tags"].as_list()
+
+    def for_kuzu(self) -> dict[str, str | bool | None]:
+        """Return a dictionary of properties for Kuzu."""
+        return {
+            "uuid": str(self.id),
+            "content": cast(str, self.content),
+            "is_heading": cast(bool, self.is_heading),
+            "directive": self.directive,
+        }
 
     def has_property(self, field_name: str) -> bool:
         """Return True if the given property has been defined for this Block."""
