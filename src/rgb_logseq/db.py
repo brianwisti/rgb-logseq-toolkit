@@ -27,6 +27,12 @@ def create_db(db_name: str, schema_path: Path) -> kuzu.Connection:
     return conn
 
 
+def populate_db(graph: Graph, conn: kuzu.Connection) -> None:
+    """Add page and block data to an empty Kuzu database."""
+    save_graph_pages(graph, conn)
+    save_graph_blocks(graph, conn)
+
+
 def save_graph_blocks(graph: Graph, conn: kuzu.Connection) -> None:
     """Store Blocks and their Page connections in CSV files."""
     graph_block_info = load_graph_blocks(graph)
@@ -162,10 +168,8 @@ def main() -> None:
 
     pages_path = Path(graph_path).expanduser()
     graph = load_graph(pages_path)
-    logger.info("Loaded graph %s; %s pages", pages_path.stem, len(graph.pages))
     conn = create_db(DB_NAME, DB_SCHEMA_PATH)
-    save_graph_pages(graph, conn)
-    save_graph_blocks(graph, conn)
+    populate_db(graph, conn)
 
 
 if __name__ == "__main__":

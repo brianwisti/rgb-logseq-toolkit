@@ -192,6 +192,8 @@ def load_graph(graph_path: Path) -> Graph:
         for asset_path in subfolder.glob("*"):
             graph.add_asset(asset_path)
 
+    logger.info("Loaded graph %s; %s pages", graph_path.stem, len(graph.pages))
+
     return graph
 
 

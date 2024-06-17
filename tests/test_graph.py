@@ -12,12 +12,6 @@ from rgb_logseq.graph import (
 from rgb_logseq.page import NAMESPACE_SELF, Page, parse_page_text
 
 
-@pytest.fixture
-def graph():
-    """Return an empty Graph."""
-    return Graph()
-
-
 def test_empty_graph():
     graph = Graph()
 
