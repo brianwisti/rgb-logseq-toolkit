@@ -6,7 +6,7 @@ import re
 import uuid
 from typing import cast
 
-from pydantic import BaseModel, Field, computed_field
+from pydantic import BaseModel, computed_field
 
 from .const import logger
 from .line import Line, parse_line
@@ -35,12 +35,12 @@ class BlockDepthError(Exception):
 class Block(BaseModel):
     """A single block and its children."""
 
-    generated_id: uuid.UUID = Field(default_factory=lambda: uuid.uuid4())
     lines: list[Line]
     properties: dict[str, Property]
     has_code_block: bool
     directive: str = ""
     branches: list[Block] = []
+    _id: uuid.UUID | None = None
 
     @computed_field
     def content(self) -> str:
@@ -78,10 +78,13 @@ class Block(BaseModel):
         If there's an ``id`` property for this block, use that. Otherwise
         use the object's generated ID.
         """
-        if "id" in self.properties:
-            return uuid.UUID(hex=self.properties["id"].value)
+        if self._id is None:
+            if "id" in self.properties:
+                self._id = uuid.UUID(hex=self.properties["id"].value)
+            else:
+                self._id = uuid.uuid4()
 
-        return self.generated_id
+        return self._id
 
     @property
     def is_directive(self) -> bool:
