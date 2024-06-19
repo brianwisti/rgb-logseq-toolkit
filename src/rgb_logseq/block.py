@@ -1,5 +1,7 @@
 """Loading and processing Logseq blocks."""
 
+from __future__ import annotations
+
 import re
 import uuid
 from typing import cast
@@ -31,13 +33,14 @@ class BlockDepthError(Exception):
 
 
 class Block(BaseModel):
-    """A single block of a Logseq page."""
+    """A single block and its children."""
 
     generated_id: uuid.UUID = Field(default_factory=lambda: uuid.uuid4())
     lines: list[Line]
     properties: dict[str, Property]
     has_code_block: bool
     directive: str = ""
+    branches: list[Block] = []
 
     @computed_field
     def content(self) -> str:

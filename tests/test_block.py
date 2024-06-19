@@ -46,6 +46,13 @@ class TestBlock:
         assert block.id == uuid.UUID(id_prop)
 
 
+class TestBranches:
+    def test_empty_branches(self, root_block_line):
+        block = from_lines([root_block_line])
+
+        assert not block.branches
+
+
 class TestFindBlocks:
     def test_empty_line_is_parsed(self):
         blocks = find_blocks("")
