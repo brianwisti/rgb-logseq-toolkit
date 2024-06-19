@@ -75,13 +75,13 @@ class TestFindBlocks:
         print(branch_block_lines)
         blocks = find_blocks(branch_block_lines)
 
-        assert len(blocks) == len(text_lines)
+        assert len(blocks.branches) == len(text_lines)
 
     def test_multiline_block_is_parsed(self, text_lines):
         block_string = as_multiline_block(text_lines)
         blocks = find_blocks(block_string)
 
-        assert len(blocks) == 1
+        assert len(blocks.branches) == 1
 
     def test_first_line_must_be_flush(self, text_line):
         branch_continuation_line = as_branch_continuation(text_line)

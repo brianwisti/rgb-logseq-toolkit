@@ -39,6 +39,7 @@ class Block(BaseModel):
     properties: dict[str, Property]
     has_code_block: bool
     directive: str = ""
+    parent: Block | None = None
     branches: list[Block] = []
     _id: uuid.UUID | None = None
 
@@ -193,18 +194,23 @@ class Block(BaseModel):
         return field_name in self.properties
 
 
-def find_blocks(source: str) -> list[Block]:
-    """Extract Logseq blocks from source text."""
-    blocks = []
-    block_lines = []
+class BlockTree(BaseModel):
+    """An ordered, nested collection of Logseq blocks."""
 
-    if len(source) == 0:
-        block_lines = [parse_line(source)]
-    else:
-        text_lines = source.splitlines()
-        for text_line in text_lines:
-            line = parse_line(text_line)
+    branches: list[Block] = []
 
+    @classmethod
+    def from_text(cls, source: str) -> BlockTree:
+        """Extract Logseq blocks from source text."""
+        if len(source) == 0:
+            # Handle empty blocks
+            return BlockTree(branches=[from_lines([parse_line(source)])])
+
+        blocks = []
+        block_lines: list[Line] = []
+        parsed_lines = [parse_line(line) for line in source.splitlines()]
+
+        for line in parsed_lines:
             if line.is_block_opener:
                 if block_lines:
                     blocks.append(from_lines(block_lines))
@@ -216,10 +222,41 @@ def find_blocks(source: str) -> list[Block]:
 
             block_lines.append(line)
 
-    if block_lines:
-        blocks.append(from_lines(block_lines))
+        if block_lines:
+            blocks.append(from_lines(block_lines))
 
-    return blocks
+        branches = find_branches(blocks)
+
+        return BlockTree(branches=branches)
+
+
+def find_branches(blocks: list[Block]) -> list[Block]:
+    """Return a list of all branch blocks in the given list of blocks."""
+    # Recursively construct blocks in branches and their children
+    # based on the depth of each block.
+    branches: list[Block] = []
+
+    for block in blocks:
+        branch_parent = None
+
+        if branches:
+            # Find the parent block
+            branch_parent = branches[-1]
+
+            while branch_parent and branch_parent.depth >= block.depth:
+                branch_parent = branch_parent.parent
+
+        if branch_parent:
+            branch_parent.branches.append(block)
+        else:
+            branches.append(block)
+
+    return branches
+
+
+def find_blocks(source: str) -> BlockTree:
+    """Extract Logseq blocks from source text."""
+    return BlockTree.from_text(source)
 
 
 def from_lines(lines: list[Line]) -> Block:

@@ -82,17 +82,17 @@ class Page(BaseModel):
 def parse_page_text(text: str, name: str) -> Page:
     """Initialize a Page from a text string of Logseq blocks."""
     try:
-        blocks = find_blocks(text)
+        block_tree = find_blocks(text)
     except ValueError as e:
         logger.error("Error finding blocks in %s", name)
         raise e
     properties = {}
-    first_block = blocks[0]
+    first_block = block_tree.branches[0]
 
     if first_block.depth == 0:
         properties = first_block.properties
 
-    return Page(blocks=blocks, name=name, properties=properties)
+    return Page(blocks=block_tree.branches, name=name, properties=properties)
 
 
 def load_page_file(path: Path) -> Page:

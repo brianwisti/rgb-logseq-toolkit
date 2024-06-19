@@ -101,7 +101,7 @@ def branch_block(text_line: str) -> Block:
     """Return a one-line branch Block."""
     branch_block_line = as_branch_block(text_line)
 
-    return find_blocks(branch_block_line)[0]
+    return find_blocks(branch_block_line).branches[0]
 
 
 @pytest.fixture
