@@ -7,7 +7,8 @@ from dotenv import load_dotenv
 import kuzu
 
 from .const import logger
-from .graph import Graph, load_graph, load_graph_blocks, load_graph_pages
+from .graph import Graph, load_graph
+from .graph_exporter import GraphExporter
 
 GRAPH_PATH_ENV = "GRAPH_PATH"
 
@@ -29,15 +30,15 @@ def create_db(db_name: str, schema_path: Path) -> kuzu.Connection:
 
 def populate_db(graph: Graph, conn: kuzu.Connection) -> None:
     """Add page and block data to an empty Kuzu database."""
-    save_graph_pages(graph, conn)
-    save_graph_blocks(graph, conn)
+    exporter = GraphExporter(graph=graph)
+    save_graph_pages(exporter, conn)
+    save_graph_blocks(exporter, conn)
 
 
-def save_graph_blocks(graph: Graph, conn: kuzu.Connection) -> None:
+def save_graph_blocks(exporter: GraphExporter, conn: kuzu.Connection) -> None:
     """Store Blocks and their Page connections in CSV files."""
-    graph_block_info = load_graph_blocks(graph)
 
-    blocks = graph_block_info["blocks"]
+    blocks = exporter.blocks
     logger.info("Saving %s blocks", len(blocks))
     conn.execute(
         """
@@ -48,7 +49,7 @@ def save_graph_blocks(graph: Graph, conn: kuzu.Connection) -> None:
         """
     )
 
-    branches = graph_block_info["branches"]
+    branches = exporter.block_branches
     logger.info("Saving %s block branches", len(branches))
     conn.execute(
         """
@@ -59,7 +60,7 @@ def save_graph_blocks(graph: Graph, conn: kuzu.Connection) -> None:
         """
     )
 
-    links = graph_block_info["links"]
+    links = exporter.links
     logger.info("Saving %s direct links", len(links))
     conn.execute(
         """
@@ -70,18 +71,18 @@ def save_graph_blocks(graph: Graph, conn: kuzu.Connection) -> None:
         """
     )
 
-    block_properties = graph_block_info["block_properties"]
+    block_properties = exporter.block_properties
     logger.info("Saving %s block properties", len(block_properties))
     conn.execute(
         """
             COPY HasProperty_Block_Page FROM (
                 LOAD FROM block_properties
-                RETURN cast(block, 'UUID'), prop, value
+                RETURN cast(block, 'UUID'), property, value
             )
         """
     )
 
-    page_memberships = graph_block_info["page_memberships"]
+    page_memberships = exporter.page_memberships
     logger.info("Saving %s page memberships", len(page_memberships))
     conn.execute(
         """
@@ -92,7 +93,7 @@ def save_graph_blocks(graph: Graph, conn: kuzu.Connection) -> None:
         """
     )
 
-    tag_links = graph_block_info["tag_links"]
+    tag_links = exporter.tag_links
     logger.info("Saving %s tag links", len(tag_links))
 
     if len(tag_links):
@@ -105,7 +106,7 @@ def save_graph_blocks(graph: Graph, conn: kuzu.Connection) -> None:
             """
         )
 
-    block_links = graph_block_info["block_links"]
+    block_links = exporter.block_links
     logger.info("Saving %s block links", len(block_links))
 
     if len(block_links):
@@ -118,11 +119,10 @@ def save_graph_blocks(graph: Graph, conn: kuzu.Connection) -> None:
             """
         )
 
-    resources = graph_block_info["resources"]
+    resources, resource_links = exporter.resource_links
     logger.info("Saving %s resources", len(resources))
     conn.execute("COPY Resource FROM (LOAD FROM resources RETURN *)")
 
-    resource_links = graph_block_info["resource_links"]
     logger.info("Saving %s resource links", len(resource_links))
 
     if len(resource_links):
@@ -138,25 +138,24 @@ def save_graph_blocks(graph: Graph, conn: kuzu.Connection) -> None:
     logger.info("Finished saving block data.")
 
 
-def save_graph_pages(graph: Graph, conn: kuzu.Connection) -> None:
+def save_graph_pages(exporter: GraphExporter, conn: kuzu.Connection) -> None:
     """Store page info from graph in a CSV file."""
-    page_data = load_graph_pages(graph)
 
-    pages = page_data["pages"]
+    pages = exporter.pages
     logger.info("Saving %s pages", len(pages))
     conn.execute("COPY Page FROM (LOAD FROM pages RETURN *)")
 
-    namespaces = page_data["namespaces"]
+    namespaces = exporter.namespaces
     logger.info("Saving %s namespaces", len(namespaces))
     conn.execute("COPY InNamespace FROM (LOAD FROM namespaces RETURN *)")
 
-    page_properties = page_data["page_properties"]
+    page_properties = exporter.page_properties
     logger.info("Saving %s page properties", len(page_properties))
     conn.execute("COPY HasProperty_Page_Page FROM (LOAD FROM page_properties RETURN *)")
 
-    tags = page_data["tags"]
+    tags = exporter.page_tags
     logger.info("Saving %s tags", len(tags))
-    conn.execute("COPY PageIsTagged FROM (LOAD FROM tags RETURN *)")
+    conn.execute("COPY IsTagged_Page_Page FROM (LOAD FROM tags RETURN *)")
 
     logger.info("Database populated with page data.")
 

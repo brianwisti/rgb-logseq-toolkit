@@ -66,18 +66,6 @@ class Page(BaseModel):
         """Add a Block to the end of this Page."""
         self.blocks.append(block)
 
-    def block_memberships_for_kuzu(self) -> list[dict[str, str | int]]:
-        """Return a list of block memberships for Kuzu."""
-        return [
-            {
-                "block": str(block.id),
-                "page": self.name,
-                "depth": block.depth,
-                "position": position,
-            }
-            for position, block in enumerate(self.blocks)
-        ]
-
 
 def parse_page_text(text: str, name: str) -> Page:
     """Initialize a Page from a text string of Logseq blocks."""

@@ -13,6 +13,13 @@ create node table Block(
     primary key (uuid)
 );
 
+create node table Resource(
+    path string,
+    is_asset bool,
+    primary key(path)
+);
+
+
 create rel table InNamespace(
     from Page to Page
 );
@@ -23,9 +30,11 @@ create rel table group HasProperty(
     value string
 );
 
-create rel table PageIsTagged(
-    from Page to Page
+create rel table group IsTagged(
+    from Page to Page,
+    from Block to Page
 );
+
 
 create rel table group Holds (
     from Page to Block,
@@ -44,12 +53,6 @@ create rel table LinksAsTag(
 
 create rel table LinksToBlock(
     from Block to Block
-);
-
-create node table Resource(
-    path string,
-    is_asset bool,
-    primary key(path)
 );
 
 create rel table LinksToResource(
