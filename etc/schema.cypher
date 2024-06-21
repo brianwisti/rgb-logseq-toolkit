@@ -5,19 +5,6 @@ create node table Page(
     primary key (name)
 );
 
-create rel table InNamespace(
-    from Page to Page
-);
-
-create rel table PageHasProperty(
-    from Page to Page,
-    value string
-);
-
-create rel table PageIsTagged(
-    from Page to Page
-);
-
 create node table Block(
     uuid uuid,
     content string,
@@ -26,19 +13,25 @@ create node table Block(
     primary key (uuid)
 );
 
-create rel table InPage(
-    from Block to Page,
-    position int64,
-    depth int64
+create rel table InNamespace(
+    from Page to Page
 );
 
-create rel table InBranch(
-    from Block to Block
-);
-
-create rel table BlockHasProperty(
+create rel table group HasProperty(
+    from Page to Page,
     from Block to Page,
     value string
+);
+
+create rel table PageIsTagged(
+    from Page to Page
+);
+
+create rel table group Holds (
+    from Page to Block,
+    from Block to Block,
+    position int64,
+    depth int64
 );
 
 create rel table Links(

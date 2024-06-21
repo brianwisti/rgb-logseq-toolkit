@@ -220,7 +220,7 @@ def load_graph_blocks(graph: Graph) -> dict[str, pd.DataFrame]:
         # the perspective of the current block.
         block_branches_seen: dict[int, str] = {}
 
-        for block_info in page.blocks:
+        for position, block_info in enumerate(page.blocks):
             block_id = str(block_info.id)
             block_depth = block_info.depth
             block_branches_seen[block_depth] = block_id
@@ -228,7 +228,7 @@ def load_graph_blocks(graph: Graph) -> dict[str, pd.DataFrame]:
 
             if parent_depth in block_branches_seen:
                 parent_id = block_branches_seen[parent_depth]
-                block_branches.append({"uuid": block_id, "parent": parent_id})
+                block_branches.append({"uuid": block_id, "parent": parent_id, "position": position, "depth": block_info.depth})
 
             blocks.append(block_info.for_kuzu())
 

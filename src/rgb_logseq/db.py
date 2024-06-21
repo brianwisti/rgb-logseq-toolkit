@@ -52,9 +52,9 @@ def save_graph_blocks(graph: Graph, conn: kuzu.Connection) -> None:
     logger.info("Saving %s block branches", len(branches))
     conn.execute(
         """
-            COPY InBranch FROM (
+            COPY Holds_Block_Block FROM (
                 LOAD FROM branches
-                RETURN cast(uuid, 'UUID'), cast(parent, 'UUID')
+                RETURN cast(parent, 'UUID'), cast(uuid, 'UUID'), position, depth
             )
         """
     )
@@ -74,7 +74,7 @@ def save_graph_blocks(graph: Graph, conn: kuzu.Connection) -> None:
     logger.info("Saving %s block properties", len(block_properties))
     conn.execute(
         """
-            COPY BlockHasProperty FROM (
+            COPY HasProperty_Block_Page FROM (
                 LOAD FROM block_properties
                 RETURN cast(block, 'UUID'), prop, value
             )
@@ -85,9 +85,9 @@ def save_graph_blocks(graph: Graph, conn: kuzu.Connection) -> None:
     logger.info("Saving %s page memberships", len(page_memberships))
     conn.execute(
         """
-        COPY InPage FROM (
+        COPY Holds_Page_Block FROM (
             LOAD FROM page_memberships
-            RETURN cast(block, 'UUID'), page, position, depth
+            RETURN page, cast(block, 'UUID'), position, depth
         )
         """
     )
@@ -152,7 +152,7 @@ def save_graph_pages(graph: Graph, conn: kuzu.Connection) -> None:
 
     page_properties = page_data["page_properties"]
     logger.info("Saving %s page properties", len(page_properties))
-    conn.execute("COPY PageHasProperty FROM (LOAD FROM page_properties RETURN *)")
+    conn.execute("COPY HasProperty_Page_Page FROM (LOAD FROM page_properties RETURN *)")
 
     tags = page_data["tags"]
     logger.info("Saving %s tags", len(tags))
