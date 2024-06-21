@@ -5,7 +5,7 @@
 groups = ["default", "lint"]
 strategy = ["cross_platform", "inherit_metadata"]
 lock_version = "4.4.1"
-content_hash = "sha256:094ef3740031f1ca748181796052743142ca6462b03b240318ef995eec57c546"
+content_hash = "sha256:e706c8807b5e4108b6e96ac79340345af8a154a0ba3a50ab7b622dd1540c550a"
 
 [[package]]
 name = "annotated-types"
@@ -611,6 +611,15 @@ groups = ["default"]
 files = [
     {file = "six-1.16.0-py2.py3-none-any.whl", hash = "sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254"},
     {file = "six-1.16.0.tar.gz", hash = "sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926"},
+]
+
+[[package]]
+name = "slugify"
+version = "0.0.1"
+summary = "A generic slugifier."
+groups = ["default"]
+files = [
+    {file = "slugify-0.0.1.tar.gz", hash = "sha256:c5703cc11c1a6947536f3ce8bb306766b8bb5a84a53717f5a703ce0f18235e4c"},
 ]
 
 [[package]]
