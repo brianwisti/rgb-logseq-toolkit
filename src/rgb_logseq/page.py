@@ -1,6 +1,6 @@
 """Logseq page handling."""
 
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 from pydantic import BaseModel, computed_field
 
@@ -51,7 +51,7 @@ class Page(BaseModel):
           This behavior probably needs to be double-checked in Windows, though
           Windows handles UNIX-style path separators just fine these days.
         """
-        return str(Path(self.name).parent)
+        return str(PurePosixPath(self.name).parent)
 
     @property
     def tags(self) -> list[str]:

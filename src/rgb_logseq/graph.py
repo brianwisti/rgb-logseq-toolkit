@@ -1,7 +1,7 @@
 """Logseq graph module."""
 
 import uuid
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import cast
 
 from pydantic import BaseModel
@@ -81,7 +81,7 @@ class Graph(BaseModel):
 
         return tags
 
-    def add_asset(self, path: Path) -> Asset:
+    def add_asset(self, path: PurePosixPath) -> Asset:
         """Add an asset to the Graph."""
         logger.debug("Adding asset to graph: %s", path)
         asset = Asset(path=path)
@@ -189,9 +189,8 @@ def load_graph(graph_path: Path) -> Graph:
     for asset_folder in asset_folders:
         subfolder = graph_path / asset_folder
         for asset_path in subfolder.glob("*"):
-            graph.add_asset(asset_path)
+            graph.add_asset(PurePosixPath(asset_path))
 
     logger.info("Loaded graph %s; %s pages", graph_path.stem, len(graph.pages))
 
     return graph
-

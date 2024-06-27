@@ -1,7 +1,7 @@
 """Pytest shared support logic for testing."""
 
 from dataclasses import dataclass
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 import pytest
 from faker import Faker
@@ -92,8 +92,8 @@ def generate_text_line(faker: Faker) -> str:
 
 
 @pytest.fixture
-def asset_path(faker: Faker) -> Path:
-    return Path(PATH_ASSETS) / faker.file_name()
+def asset_path(faker: Faker) -> PurePosixPath:
+    return PurePosixPath(PATH_ASSETS) / faker.file_name()
 
 
 @pytest.fixture

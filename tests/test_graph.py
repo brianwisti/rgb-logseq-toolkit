@@ -1,7 +1,7 @@
 """Test handling complete Logseq graphs."""
 
 import pytest
-from pathlib import Path
+from pathlib import PurePosixPath
 
 from rgb_logseq.graph import (
     DuplicateAssetError,
@@ -210,7 +210,7 @@ class TestGraphPageNamespaces:
 
     def test_recursive_namespace_pages(self, graph: Graph, page_in_namespace: Page):
         graph.add_page(page_in_namespace)
-        namespace = Path(page_in_namespace.namespace)
+        namespace = PurePosixPath(page_in_namespace.namespace)
 
         while str(namespace) != NAMESPACE_SELF:
             assert str(namespace) in graph.pages

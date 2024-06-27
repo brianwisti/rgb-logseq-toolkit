@@ -40,21 +40,17 @@ Kùzu's interactive explorer runs as a container, so you'll almost certainly
 want to have [Docker][docker] working.
 
 [python]: https://python.org
-[pdm]: https://pdm-project.org/en/stable/
 [go-lang]: https://go.dev/
 [rust]: https://www.rust-lang.org/
 [polars]: https://pola.rs/
 [kuzu]: https://kuzudb.com/
 [just]: https://just.systems/
 [docker]: https://www.docker.com/
+[uv]: https://github.com/astral-sh/uv
 
 ### Python specifics
 
-I'm on 3.12 via [PDM][pdm]. Both are subject to change. I just happen to have
-PDM working on my laptop and no time to explore all the other options.
-
-Tests are managed with [`pytest`][pytest], while [Ruff][ruff] and [mypy][mypy]
-look for code quality issues. [Rich][rich] is there to make my console pretty.
+I'm on 3.12 via a `.venv` managed by [uv][uv]. Tests are managed with [`pytest`][pytest], while [Ruff][ruff] and [mypy][mypy] look for code quality issues. [Rich][rich] is there to make my console pretty.
 
 [pytest]: https://docs.pytest.org/
 [ruff]: https://astral.sh/ruff

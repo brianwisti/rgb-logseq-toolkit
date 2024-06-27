@@ -1,21 +1,25 @@
 cwd := `pwd`
+mypy := ".venv/Scripts/mypy"
+python := ".venv/Scripts/python"
+pytest := ".venv/Scripts/pytest"
+ruff := ".venv/Scripts/ruff"
 
 test:
-    pdm run pytest
+    {{ pytest }}
 
 lint:
-    pdm run ruff check .
+    {{ ruff }} check .
 
 types:
-    pdm run mypy
+    {{ mypy }} src
 
 check: lint types
 
 coverage:
-    pdm run pytest --cov
+    {{ pytest }} --cov
 
 db: clean-db
-    PYTHONPATH=src pdm run python -m rgb_logseq.db
+    PYTHONPATH=src {{ python }} -m rgb_logseq.db
 
 clean-db:
   if [ -d graph_db ]; then rm -r graph_db; fi
