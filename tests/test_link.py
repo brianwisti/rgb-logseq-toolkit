@@ -2,7 +2,6 @@
 
 import pytest
 from pydantic import ValidationError
-
 from rgb_logseq.link import BlockLink, DirectLink, LinkType, ResourceLink
 
 
@@ -43,7 +42,7 @@ class TestBlockLink:
 class TestResourceLink:
     def test_link_text_is_required(self, faker):
         with pytest.raises(ValidationError):
-            _ = ResourceLink(target=faker.word())
+            _ = ResourceLink(target=faker.word())  # type: ignore
 
     def test_local_file_is_asset(self, asset_path):
         link_text = asset_path.name

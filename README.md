@@ -8,11 +8,12 @@ Using assorted tools to untangle my [Logseq][logseq] pages and graphs.
 
 ## Goals
 
-- Unify my Logseq setup across Windows, macOS, and Linux
+- Unify my Logseq setup across macOS and Linux
 - Process Logseq notes for analysis
 - Clean up inconsistent formatting and properties
 - Publish my Logseq notes to [My Public Brain][my-brain]
 - Translate my Logseq notes to other PKM systems
+- (eventually) get all the pieces behaving nicely on Windows
 
 [my-brain]: https://randomgeekery.org
 
@@ -80,13 +81,7 @@ Adding because it's the sort of trivia I'm always forgetting. Check `.venv/Scrip
 Linux or other UNIX-like with GNU Bash:
 
 ```bash
-source .venv/Scripts/activate
-```
-
-Windows PowerShell:
-
-```powershell
-.venv\Scripts\activate
+source .venv/bin/activate
 ```
 
 Nushell:

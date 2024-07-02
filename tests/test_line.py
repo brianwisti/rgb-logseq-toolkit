@@ -1,7 +1,6 @@
 """Test parsing a single lines in a Logseq block or page."""
 
 import pytest
-
 from rgb_logseq.const import MARK_BLOCK_CONTINUATION, MARK_BLOCK_OPENER
 from rgb_logseq.line import parse_line
 

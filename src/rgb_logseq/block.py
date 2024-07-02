@@ -129,7 +129,7 @@ class Block(BaseModel):
 
     @property
     def raw(self) -> str:
-        """Return the raw content of this Block's lines as a newline-separated string."""
+        """Return raw content of this Block's lines as a newline-separated string."""
         return "\n".join([block_line.raw for block_line in self.lines])
 
     @property

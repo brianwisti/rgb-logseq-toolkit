@@ -3,7 +3,6 @@
 import uuid
 
 import pytest
-
 from rgb_logseq.block import BlockDepthError, find_blocks, from_lines
 from rgb_logseq.line import Line, parse_line, parse_lines
 

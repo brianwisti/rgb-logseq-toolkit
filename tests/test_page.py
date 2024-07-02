@@ -2,12 +2,10 @@
 
 import pytest
 from faker import Faker
-
 from rgb_logseq.page import NAMESPACE_SELF, Page, load_page_file, parse_page_text
 from rgb_logseq.property import Property
 
 from .conftest import as_branch_block
-
 
 # pylint: disable=missing-class-docstring, missing-function-docstring
 

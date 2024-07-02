@@ -5,11 +5,10 @@ from pathlib import Path, PurePosixPath
 
 import pytest
 from faker import Faker
-
 from rgb_logseq import line
 from rgb_logseq.block import Block, find_blocks
 from rgb_logseq.graph import Graph
-from rgb_logseq.link import DirectLink, PATH_ASSETS, ResourceLink
+from rgb_logseq.link import PATH_ASSETS, DirectLink, ResourceLink
 from rgb_logseq.page import Page, parse_page_text
 from rgb_logseq.property import Property
 

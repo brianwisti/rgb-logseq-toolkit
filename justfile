@@ -1,8 +1,8 @@
 cwd := `pwd`
-mypy := ".venv/Scripts/mypy"
-python := ".venv/Scripts/python"
-pytest := ".venv/Scripts/pytest"
-ruff := ".venv/Scripts/ruff"
+mypy := ".venv/bin/mypy"
+python := ".venv/bin/python"
+pytest := ".venv/bin/pytest"
+ruff := ".venv/bin/ruff"
 
 test:
     {{ pytest }}
@@ -26,6 +26,6 @@ publish:
 
 explore:
     docker run -p 8000:8000 \
-      -v e:/proj/rgb-logseq-toolkit/graph_db:/database \
+      -v ./graph_db:/database \
       -e MODE=READ_ONLY \
       --rm kuzudb/explorer:latest
