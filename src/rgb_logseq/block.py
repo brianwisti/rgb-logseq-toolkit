@@ -36,7 +36,7 @@ class Block(BaseModel):
     generated_id: uuid.UUID = Field(default_factory=lambda: uuid.uuid4())
     lines: list[Line]
     properties: dict[str, Property]
-    has_code_block: bool
+    is_code_block: bool
     directive: str = ""
 
     @computed_field
@@ -256,6 +256,6 @@ def from_lines(lines: list[Line]) -> Block:
     return Block(
         lines=lines,
         properties=properties,
-        has_code_block=has_code_block,
+        is_code_block=has_code_block,
         directive=directive,
     )

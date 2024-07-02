@@ -1,11 +1,11 @@
 """Explore my Logseq graph in Kuzu."""
 
-from pathlib import Path
 import os
 import shutil
+from pathlib import Path
 
-from dotenv import load_dotenv
 import kuzu
+from dotenv import load_dotenv
 
 from .const import logger
 from .graph import Graph, load_graph

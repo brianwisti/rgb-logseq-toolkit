@@ -35,7 +35,6 @@ create rel table group IsTagged(
     from Block to Page
 );
 
-
 create rel table group Holds (
     from Page to Block,
     from Block to Block,

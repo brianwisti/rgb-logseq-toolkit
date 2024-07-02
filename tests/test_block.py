@@ -27,7 +27,7 @@ class TestBlock:
         assert block.raw == root_block_line.raw
         assert block.content == root_block_line.content
         assert block.depth == 0
-        assert not block.has_code_block
+        assert not block.is_code_block
         assert not block.is_public
         assert not block.tags
         assert not block.is_directive
@@ -90,7 +90,7 @@ class TestBlockFromLines:
         assert block.raw == root_block_line.raw
         assert block.content == root_block_line.content
         assert block.depth == 0
-        assert not block.has_code_block
+        assert not block.is_code_block
         assert not block.is_public
         assert not block.tags
         assert not block.is_directive
@@ -182,7 +182,7 @@ class TestCodeBlock:
         ]
         block = from_lines(parse_lines(text_lines))
 
-        assert block.has_code_block
+        assert block.is_code_block
 
     def test_code_block_must_end(self, text_line):
         text_lines = [

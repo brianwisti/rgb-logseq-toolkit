@@ -21,9 +21,11 @@ coverage:
 db:
     PYTHONPATH=src {{ python }} -m rgb_logseq.db
 
+publish:
+    PYTHONPATH=src {{ python }} -m rgb_logseq.publisher
 
 explore:
     docker run -p 8000:8000 \
-      -v {{ cwd }}/graph_db:/database \
+      -v e:/proj/rgb-logseq-toolkit/graph_db:/database \
       -e MODE=READ_ONLY \
       --rm kuzudb/explorer:latest
