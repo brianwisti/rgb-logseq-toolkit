@@ -2,6 +2,7 @@
 
 from pathlib import Path
 import os
+import shutil
 
 from dotenv import load_dotenv
 import kuzu
@@ -18,18 +19,29 @@ DB_SCHEMA_PATH = Path("etc/schema.cypher")
 load_dotenv()
 
 
-def create_db(db_name: str, schema_path: Path) -> kuzu.Connection:
+def clear(db_name: str = DB_NAME) -> None:
+    """Remove all data from the database."""
+    db_path = Path(db_name)
+
+    if db_path.is_dir():
+        shutil.rmtree(db_path)
+        logger.info("Database %s cleared.", db_name)
+
+
+def connect(db_name: str = DB_NAME) -> kuzu.Connection:
     """Create the database for our Logseq graph and return a connection."""
     db = kuzu.Database(db_name)
     conn = kuzu.Connection(db)
-    schema = schema_path.read_text(encoding="utf-8")
-    conn.execute(schema)
 
     return conn
 
 
-def populate_db(graph: Graph, conn: kuzu.Connection) -> None:
+def populate_db(
+    graph: Graph, conn: kuzu.Connection, schema_path: Path = DB_SCHEMA_PATH
+) -> None:
     """Add page and block data to an empty Kuzu database."""
+    schema = schema_path.read_text(encoding="utf-8")
+    conn.execute(schema)
     exporter = GraphExporter(graph=graph)
     save_graph_pages(exporter, conn)
     save_graph_blocks(exporter, conn)
@@ -165,9 +177,10 @@ def main() -> None:
     graph_path = os.getenv(GRAPH_PATH_ENV)
     assert graph_path
 
+    clear()
     pages_path = Path(graph_path).expanduser()
     graph = load_graph(pages_path)
-    conn = create_db(DB_NAME, DB_SCHEMA_PATH)
+    conn = connect(DB_NAME)
     populate_db(graph, conn)
 
 

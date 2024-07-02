@@ -18,11 +18,9 @@ check: lint types
 coverage:
     {{ pytest }} --cov
 
-db: clean-db
+db:
     PYTHONPATH=src {{ python }} -m rgb_logseq.db
 
-clean-db:
-  if [ -d graph_db ]; then rm -r graph_db; fi
 
 explore:
     docker run -p 8000:8000 \
