@@ -5,26 +5,7 @@ description = "Default template for PDM package"
 authors = [
     {name = "Brian Wisti", email = "brianwisti@pobox.com"},
 ]
-dependencies = [
-    "pyright>=1.1.363",
-    "pytest>=8.2.0",
-    "Faker>=25.2.0",
-    "ruff>=0.4.4",
-    "pydantic>=2.7.1",
-    "pyfakefs>=5.5.0",
-    "mypy>=1.10.0",
-    "kuzu>=0.4.2",
-    "rich>=13.7.1",
-    "python-dotenv>=1.0.1",
-    "pyarrow>=16.1.0",
-    "pandas>=2.2.2",
-    "pandas-stubs>=2.2.2.240603",
-    "pytest-cov>=5.0.0",
-    "python-slugify>=8.0.4",
-    "slugify>=0.0.1",
-    "pre-commit>=3.7.1",
-]
-requires-python = "==3.12.*"
+requires-python = "==3.11.*"
 readme = "README.md"
 license = {text = "MIT"}
 
