@@ -50,17 +50,52 @@ want to have [Docker][docker] working.
 
 ### Python specifics
 
-I'm on 3.12 via a `.venv` managed by [uv][uv]. Tests are managed with [`pytest`][pytest], while [Ruff][ruff] and [mypy][mypy] look for code quality issues. [Rich][rich] is there to make my console pretty.
+I'm on 3.11 via a `.venv` managed by [uv][uv]. Tests are managed with [`pytest`][pytest], while [Ruff][ruff] and [mypy][mypy] look for code quality issues. [Rich][rich] is there to make my console pretty.
 
 [pytest]: https://docs.pytest.org/
 [ruff]: https://astral.sh/ruff
 [mypy]: https://mypy-lang.org/
 [rich]: https://rich.readthedocs.io
 
+## Setup
 
-### Setup
+These instrutions assume a uv-based workflow. If you're using another set of tools, you'll need to modify for your own workflow.
 
-Install PDM and just. Set up your Python work environment with `pdm install`.
+Create a virtual environment to hold project-specific dependencies.
+
+```bash
+uv venv
+```
+
+Install those dependencies.
+
+```bash
+uv pip sync requirements.txt
+```
+
+### Activating the virtual environment
+
+Adding because it's the sort of trivia I'm always forgetting. Check `.venv/Scripts` for the `activate.*` script appropriate to your platform. Here's my main ones:
+
+Linux or other UNIX-like with GNU Bash:
+
+```bash
+source .venv/Scripts/activate
+```
+
+Windows PowerShell:
+
+```powershell
+.venv\Scripts\activate
+```
+
+Nushell:
+
+```nu
+overlay use .venv/Scripts/activate.nu
+```
+
+### Application Environment
 
 Specify the location of your graph in your shell environment or a `.env` file.
 
@@ -74,7 +109,7 @@ To use the `kuzu` REPL or interactive explorer, install that.
 
 For those macOS and Linux folks using Homebrew:
 
-```
+```bash
 brew install kuzu
 ```
 
@@ -88,7 +123,7 @@ here.
 
 Write code. Run tests. Run linter and type checks.
 
-```
+```bash
 just test check
 ```
 
@@ -97,7 +132,7 @@ just test check
 You can do this with only the Python dependencies installed. You'll
 have to do all the graph analysis via Python if you stop here though.
 
-```
+```bash
 just db
 ```
 
@@ -108,14 +143,14 @@ place.
 
 Make sure you have the `kuzu` executable and Docker installed on your system.
 
-```
+```bash
 just explore
 ```
 
 Remember you can combine tasks, so if you want to explore a guaranteed[^1] fresh
 database:
 
-```
+```bash
 just db explore
 ```
 

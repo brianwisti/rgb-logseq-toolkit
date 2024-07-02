@@ -42,4 +42,9 @@ pythonpath = "src"
 
 [tool.ruff.lint]
 # C901: McCabe complexity
-select = ["E4", "E7", "E9", "F", "C901"]
+select = [
+  "E",
+  "F",
+  "C90",
+  "I"
+]
