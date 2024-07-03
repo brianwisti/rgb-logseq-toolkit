@@ -1,8 +1,8 @@
 """Functions and classes for exporting to a static site generator."""
 
+import json
 from pathlib import Path
 
-import frontmatter  # type: ignore
 import kuzu
 from pydantic import BaseModel, Field
 from slugify import slugify
@@ -32,13 +32,12 @@ class Publisher(BaseModel):
             page_slug = page_info["slug"]
             page_content = self.__load_page_content(page_name)
             page_properties = self.__load_page_properties(page_name)
-            post = frontmatter.Post(page_content)
 
             if page_properties:
-                logger.info("Adding properties to %s", page_slug)
+                logger.debug("Adding properties to %s: %s", page_slug, page_properties)
                 post.metadata.update(page_properties)
 
-            print(frontmatter.dumps(post))
+            logger.info("Post metadata: %s", post.metadata)
 
     def __load_page_content(self, page_name: str) -> str:
         """Return the content of a page."""
@@ -63,7 +62,7 @@ class Publisher(BaseModel):
             if not block["content"]:
                 continue
 
-            logger.info(block)
+            logger.debug(block)
             block_uuid = block["uuid"]
             content_lines = []
             content_lines.append(f"<Block id='{block_uuid}'>")
@@ -117,9 +116,7 @@ class Publisher(BaseModel):
         page_properties = {"title": page_title}
         page_query = """
             MATCH
-                (p:Page {name: $page_name})
-            OPTIONAL MATCH
-                (p)-[h:HasProperty]->(prop:Page)
+                (p:Page {name: $page_name})-[h:HasProperty]->(prop:Page)
             WHERE
                 prop.name <> "public" AND
                 h.value <> "-"
@@ -128,9 +125,16 @@ class Publisher(BaseModel):
                 h.value
         """
         page_result = self.conn.execute(page_query, {"page_name": page_name})
+        prop_count = page_result.get_num_tuples()
+        logger.debug("Found %s properties for %s", prop_count, page_name)
 
         while page_result.has_next():
             prop_name, prop_value = page_result.get_next()
+
+            if not prop_name:
+                # I'm not sure, but I think this is a Kuzu bug.
+                logger.warning("empty property row returned for %s", page_name)
+                continue
 
             if prop_name in list_props:
                 prop_value = prop_value.split(", ")
@@ -138,6 +142,8 @@ class Publisher(BaseModel):
                 prop_value = strip_wiki_link(prop_value)
 
             page_properties[prop_name] = prop_value
+
+        logger.debug("Page properties loaded for %s: %s", page_name, page_properties)
 
         return page_properties
 

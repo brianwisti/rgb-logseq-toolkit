@@ -173,7 +173,13 @@ class Line(BaseModel):
     @property
     def is_property(self) -> bool:
         """Return True if this line indicates a Block property."""
-        return MARK_PROPERTY in self.content and not self.is_code_fence
+        if not self.content:
+            return False
+
+        if self.is_code_fence:
+            return False
+
+        return MARK_PROPERTY in self.content
 
     @property
     def links(self) -> list[DirectLink]:
