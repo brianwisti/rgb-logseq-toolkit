@@ -1,6 +1,7 @@
 """Automated tests for graph export to SSG."""
 
 import pytest
+
 from rgb_logseq.publisher import page_slug
 
 

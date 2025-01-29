@@ -3,6 +3,7 @@
 from pathlib import PurePosixPath
 
 import pytest
+
 from rgb_logseq.graph import (
     DuplicateAssetError,
     DuplicatePageNameError,

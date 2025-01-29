@@ -3,6 +3,7 @@
 from random import choice
 
 import pytest
+
 from rgb_logseq.property import TRUE_VALUES, Property
 
 

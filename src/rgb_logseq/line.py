@@ -195,7 +195,6 @@ class Line(BaseModel):
         resource_link_matches = RESOURCE_LINK_PATTERN.findall(self.content)
 
         for match in RESOURCE_LINK_PATTERN.finditer(self.content):
-
             logger.debug("Found resource link: %s", match)
             link_text = match.group("label")
             target = match.group("uri")

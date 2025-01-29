@@ -1,8 +1,8 @@
 cwd := `pwd`
-mypy := ".venv/bin/mypy"
-python := ".venv/bin/python"
-pytest := ".venv/bin/pytest"
-ruff := ".venv/bin/ruff"
+mypy := "uv run mypy"
+python := "uv run python"
+pytest := "uv run pytest"
+ruff := "uv run ruff"
 
 test:
     {{ pytest }}

@@ -1,21 +1,26 @@
 [project]
-name = "rgb-logseq"
+name = "rgb-logseq-toolkit"
+authors = [{ name = "Brian Wisti", email = "brian.wisti@gmail.com" }]
 version = "0.1.0"
-description = "Default template for PDM package"
-authors = [
-    {name = "Brian Wisti", email = "brianwisti@pobox.com"},
-]
-requires-python = "==3.11.*"
+description = "Add your description here"
+license = { text = "MIT" }
 readme = "README.md"
-license = {text = "MIT"}
-
+requires-python = ">=3.12"
+dependencies = [
+    "kuzu>=0.7.1",
+    "pandas>=2.2.3",
+    "pandas-stubs>=2.2.3.241126",
+    "pyarrow>=19.0.0",
+    "pydantic>=2.10.6",
+    "python-dotenv>=1.0.1",
+    "python-frontmatter>=1.1.0",
+    "python-slugify>=8.0.4",
+    "rich>=13.9.4",
+]
 
 [tool.mypy]
 python_version = "3.12"
-files = [
-  "src/",
-  "tests/conftest.py",
-]
+files = ["src/", "tests/conftest.py"]
 disallow_any_generics = true
 disallow_subclassing_any = false
 disallow_untyped_calls = true
@@ -24,27 +29,26 @@ no_implicit_reexport = true
 strict_equality = true
 warn_redundant_casts = true
 warn_return_any = true
-warn_unused_ignores = true
 
-[tool.pdm]
-distribution = false
-
-[tool.pdm.dev-dependencies]
-lint = [
-    "pre-commit>=3.7.1",
-]
-
-[tool.pdm.scripts]
-lint = "pre-commit run --all-files"
+# until I figure out why `just types` cares about untype imports,
+# and `pre-commit` doesn't
+warn_unused_ignores = false
 
 [tool.pytest.ini_options]
 pythonpath = "src"
 
 [tool.ruff.lint]
 # C901: McCabe complexity
-select = [
-  "E",
-  "F",
-  "C90",
-  "I"
+select = ["E", "F", "C90", "I"]
+
+[dependency-groups]
+dev = [
+    "faker>=35.0.0",
+    "mypy>=1.14.1",
+    "pre-commit>=4.1.0",
+    "pyfakefs>=5.7.4",
+    "pyright>=1.1.393",
+    "pytest>=8.3.4",
+    "pytest-cov>=6.0.0",
+    "ruff>=0.9.3",
 ]

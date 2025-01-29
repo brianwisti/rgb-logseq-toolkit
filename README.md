@@ -51,7 +51,9 @@ want to have [Docker][docker] working.
 
 ### Python specifics
 
-I'm on 3.11 via a `.venv` managed by [uv][uv]. Tests are managed with [`pytest`][pytest], while [Ruff][ruff] and [mypy][mypy] look for code quality issues. [Rich][rich] is there to make my console pretty.
+I'm on 3.12 via a `.venv` managed by [uv][uv]. Tests are managed with
+[`pytest`][pytest], while [Ruff][ruff] and [mypy][mypy] look for code quality
+issues. [Rich][rich] is there to make my console pretty.
 
 [pytest]: https://docs.pytest.org/
 [ruff]: https://astral.sh/ruff
@@ -68,10 +70,10 @@ Create a virtual environment to hold project-specific dependencies.
 uv venv
 ```
 
-Install those dependencies.
+Sync your venv with project dependencies.
 
 ```bash
-uv pip sync requirements.txt
+uv sync
 ```
 
 ### Activating the virtual environment
@@ -153,7 +155,7 @@ just db explore
 
 Using the MIT License for this.
 
-Copyright 2024 Brian Wisti
+Copyright 2024-2025 Brian Wisti
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the “Software”), to deal in

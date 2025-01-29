@@ -1,8 +1,8 @@
 """Functions and classes for exporting to a static site generator."""
 
-import json
 from pathlib import Path
 
+import frontmatter  # type: ignore
 import kuzu
 from pydantic import BaseModel, Field
 from slugify import slugify
@@ -31,6 +31,7 @@ class Publisher(BaseModel):
 
             page_slug = page_info["slug"]
             page_content = self.__load_page_content(page_name)
+            post = frontmatter.Post(page_content)
             page_properties = self.__load_page_properties(page_name)
 
             if page_properties:
@@ -54,34 +55,36 @@ class Publisher(BaseModel):
                 block
             ORDER BY h.position
         """
-        block_result = self.conn.execute(block_query, {"page_name": page_name})
+        query_result = self.conn.execute(block_query, {"page_name": page_name})
+        results = gather_query_results(query_result)
 
-        while block_result.has_next():
-            pos, depth, child_count, block = block_result.get_next()
+        for block_result in results:
+            while block_result.has_next():
+                pos, depth, child_count, block = block_result.get_next()
 
-            if not block["content"]:
-                continue
+                if not block["content"]:
+                    continue
 
-            logger.debug(block)
-            block_uuid = block["uuid"]
-            content_lines = []
-            content_lines.append(f"<Block id='{block_uuid}'>")
+                logger.debug(block)
+                block_uuid = block["uuid"]
+                content_lines = []
+                content_lines.append(f"<Block id='{block_uuid}'>")
 
-            if block["is_heading"]:
-                heading_level = depth + 1
-                content_lines.append(
-                    f"<Heading level={heading_level}>{block['content']}</Heading>"
-                )
-            else:
-                content_lines.append(block["content"])
+                if block["is_heading"]:
+                    heading_level = depth + 1
+                    content_lines.append(
+                        f"<Heading level={heading_level}>{block['content']}</Heading>"
+                    )
+                else:
+                    content_lines.append(block["content"])
 
-                if not child_count or depth < last_depth:
-                    content_lines.append("</Block>")
+                    if not child_count or depth < last_depth:
+                        content_lines.append("</Block>")
 
-            content += "\n".join(content_lines) + "\n"
+                content += "\n".join(content_lines) + "\n"
 
-            if depth != last_depth:
-                last_depth = depth
+                if depth != last_depth:
+                    last_depth = depth
 
         return content
 
@@ -95,15 +98,17 @@ class Publisher(BaseModel):
                 p.name,
                 p.is_placeholder
         """
-        page_map_result = self.conn.execute(page_map_query)
+        query_result = self.conn.execute(page_map_query)
+        results = gather_query_results(query_result)
 
-        while page_map_result.has_next():
-            name, is_placeholder = page_map_result.get_next()
+        for page_map_result in results:
+            while page_map_result.has_next():
+                name, is_placeholder = page_map_result.get_next()
 
-            page_map[name] = {
-                "is_placeholder": is_placeholder,
-                "slug": page_slug(name),
-            }
+                page_map[name] = {
+                    "is_placeholder": is_placeholder,
+                    "slug": page_slug(name),
+                }
 
         return page_map
 
@@ -124,28 +129,41 @@ class Publisher(BaseModel):
                 prop.name,
                 h.value
         """
-        page_result = self.conn.execute(page_query, {"page_name": page_name})
-        prop_count = page_result.get_num_tuples()
-        logger.debug("Found %s properties for %s", prop_count, page_name)
+        query_result = self.conn.execute(page_query, {"page_name": page_name})
+        results = gather_query_results(query_result)
 
-        while page_result.has_next():
-            prop_name, prop_value = page_result.get_next()
+        for page_result in results:
+            prop_count = page_result.get_num_tuples()
+            logger.debug("Found %s properties for %s", prop_count, page_name)
 
-            if not prop_name:
-                # I'm not sure, but I think this is a Kuzu bug.
-                logger.warning("empty property row returned for %s", page_name)
-                continue
+            while page_result.has_next():
+                prop_name, prop_value = page_result.get_next()
 
-            if prop_name in list_props:
-                prop_value = prop_value.split(", ")
-            elif prop_name in link_props:
-                prop_value = strip_wiki_link(prop_value)
+                if not prop_name:
+                    # I'm not sure, but I think this is a Kuzu bug.
+                    logger.warning("empty property row returned for %s", page_name)
+                    continue
 
-            page_properties[prop_name] = prop_value
+                if prop_name in list_props:
+                    prop_value = prop_value.split(", ")
+                elif prop_name in link_props:
+                    prop_value = strip_wiki_link(prop_value)
+
+                page_properties[prop_name] = prop_value
 
         logger.debug("Page properties loaded for %s: %s", page_name, page_properties)
 
         return page_properties
+
+
+def gather_query_results(
+    query_result: kuzu.QueryResult | list[kuzu.QueryResult],
+) -> list[kuzu.QueryResult]:
+    if type(query_result) is kuzu.QueryResult:
+        return [query_result]
+    assert type(query_result) is list
+
+    return query_result
 
 
 def page_slug(page_name: str) -> str:

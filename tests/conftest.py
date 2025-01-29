@@ -5,6 +5,7 @@ from pathlib import Path, PurePosixPath
 
 import pytest
 from faker import Faker
+
 from rgb_logseq import line
 from rgb_logseq.block import Block, find_blocks
 from rgb_logseq.graph import Graph
