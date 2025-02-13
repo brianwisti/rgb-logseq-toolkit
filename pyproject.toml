@@ -7,7 +7,7 @@ license = { text = "MIT" }
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "kuzu>=0.7.1",
+    "kuzu>=0.8.0",
     "pandas>=2.2.3",
     "pandas-stubs>=2.2.3.241126",
     "pyarrow>=19.0.0",
@@ -43,8 +43,8 @@ select = ["E", "F", "C90", "I"]
 
 [dependency-groups]
 dev = [
-    "faker>=35.0.0",
-    "mypy>=1.14.1",
+    "faker>=36.1.0",
+    "mypy>=1.15.0",
     "pre-commit>=4.1.0",
     "pyfakefs>=5.7.4",
     "pyright>=1.1.393",
