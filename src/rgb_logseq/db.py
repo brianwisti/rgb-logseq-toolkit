@@ -65,7 +65,7 @@ def save_graph_blocks(exporter: GraphExporter, conn: kuzu.Connection) -> None:
     logger.info("Saving %s block branches", len(branches))
     conn.execute(
         """
-            COPY Holds_Block_Block FROM (
+            COPY HOLDS_Block_Block FROM (
                 LOAD FROM branches
                 RETURN cast(parent, 'UUID'), cast(uuid, 'UUID'), position, depth
             )
@@ -76,7 +76,7 @@ def save_graph_blocks(exporter: GraphExporter, conn: kuzu.Connection) -> None:
     logger.info("Saving %s direct links", len(links))
     conn.execute(
         """
-            COPY Links FROM (
+            COPY LINKS FROM (
                 LOAD FROM links
                 RETURN cast(source, 'UUID'), target
             )
@@ -87,7 +87,7 @@ def save_graph_blocks(exporter: GraphExporter, conn: kuzu.Connection) -> None:
     logger.info("Saving %s block properties", len(block_properties))
     conn.execute(
         """
-            COPY HasProperty_Block_Page FROM (
+            COPY HAS_PROPERTY_Block_Page FROM (
                 LOAD FROM block_properties
                 RETURN cast(block, 'UUID'), property, value
             )
@@ -98,7 +98,7 @@ def save_graph_blocks(exporter: GraphExporter, conn: kuzu.Connection) -> None:
     logger.info("Saving %s page memberships", len(page_memberships))
     conn.execute(
         """
-        COPY Holds_Page_Block FROM (
+        COPY HOLDS_Page_Block FROM (
             LOAD FROM page_memberships
             RETURN page, cast(block, 'UUID'), position, depth
         )
@@ -111,7 +111,7 @@ def save_graph_blocks(exporter: GraphExporter, conn: kuzu.Connection) -> None:
     if len(tag_links):
         conn.execute(
             """
-                COPY LinksAsTag FROM (
+                COPY LINKS_AS_TAG FROM (
                     LOAD FROM tag_links
                     RETURN cast(source, 'UUID'), target
                 )
@@ -124,7 +124,7 @@ def save_graph_blocks(exporter: GraphExporter, conn: kuzu.Connection) -> None:
     if len(block_links):
         conn.execute(
             """
-                COPY LinksToBlock FROM (
+                COPY LINKS_TO_BLOCK FROM (
                     LOAD FROM block_links
                     RETURN cast(source, 'UUID'), cast(target, 'UUID')
                 )
@@ -140,7 +140,7 @@ def save_graph_blocks(exporter: GraphExporter, conn: kuzu.Connection) -> None:
     if len(resource_links):
         conn.execute(
             """
-                COPY LinksToResource FROM (
+                COPY LINKS_TO_RESOURCE FROM (
                     LOAD FROM resource_links
                     RETURN cast(source, 'UUID'), target, label
                 )
@@ -159,15 +159,17 @@ def save_graph_pages(exporter: GraphExporter, conn: kuzu.Connection) -> None:
 
     namespaces = exporter.namespaces
     logger.info("Saving %s namespaces", len(namespaces))
-    conn.execute("COPY InNamespace FROM (LOAD FROM namespaces RETURN *)")
+    conn.execute("COPY IN_NAMESPACE FROM (LOAD FROM namespaces RETURN *)")
 
     page_properties = exporter.page_properties
     logger.info("Saving %s page properties", len(page_properties))
-    conn.execute("COPY HasProperty_Page_Page FROM (LOAD FROM page_properties RETURN *)")
+    conn.execute(
+        "COPY HAS_PROPERTY_Page_Page FROM (LOAD FROM page_properties RETURN *)"
+    )
 
     tags = exporter.page_tags
     logger.info("Saving %s tags", len(tags))
-    conn.execute("COPY IsTagged_Page_Page FROM (LOAD FROM tags RETURN *)")
+    conn.execute("COPY IS_TAGGED_Page_Page FROM (LOAD FROM tags RETURN *)")
 
     logger.info("Database populated with page data.")
 

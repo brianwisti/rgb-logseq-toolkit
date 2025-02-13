@@ -28,4 +28,4 @@ explore:
     docker run -p 8000:8000 \
       -v ./graph_db:/database \
       -e MODE=READ_ONLY \
-      --rm kuzudb/explorer:latest
+      --rm kuzudb/explorer:0.8.0
