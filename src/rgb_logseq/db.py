@@ -52,100 +52,44 @@ def save_graph_blocks(exporter: GraphExporter, conn: kuzu.Connection) -> None:
 
     blocks = exporter.blocks
     logger.info("Saving %s blocks", len(blocks))
-    conn.execute(
-        """
-            COPY Block FROM (
-                LOAD FROM blocks
-                RETURN cast(uuid, 'UUID'), content, is_heading, directive
-            )
-        """
-    )
+    conn.execute("COPY Block FROM blocks")
 
     branches = exporter.block_branches
     logger.info("Saving %s block branches", len(branches))
-    conn.execute(
-        """
-            COPY HOLDS_Block_Block FROM (
-                LOAD FROM branches
-                RETURN cast(parent, 'UUID'), cast(uuid, 'UUID'), position, depth
-            )
-        """
-    )
+    conn.execute("COPY HOLDS_Block_Block FROM branches")
 
     links = exporter.links
     logger.info("Saving %s direct links", len(links))
-    conn.execute(
-        """
-            COPY LINKS FROM (
-                LOAD FROM links
-                RETURN cast(source, 'UUID'), target
-            )
-        """
-    )
+    conn.execute("COPY LINKS FROM links")
 
     block_properties = exporter.block_properties
     logger.info("Saving %s block properties", len(block_properties))
-    conn.execute(
-        """
-            COPY HAS_PROPERTY_Block_Page FROM (
-                LOAD FROM block_properties
-                RETURN cast(block, 'UUID'), property, value
-            )
-        """
-    )
+    conn.execute("COPY HAS_PROPERTY_Block_Page FROM block_properties")
 
     page_memberships = exporter.page_memberships
     logger.info("Saving %s page memberships", len(page_memberships))
-    conn.execute(
-        """
-        COPY HOLDS_Page_Block FROM (
-            LOAD FROM page_memberships
-            RETURN page, cast(block, 'UUID'), position, depth
-        )
-        """
-    )
+    conn.execute("COPY HOLDS_Page_Block FROM page_memberships")
 
     tag_links = exporter.tag_links
     logger.info("Saving %s tag links", len(tag_links))
 
     if len(tag_links):
-        conn.execute(
-            """
-                COPY LINKS_AS_TAG FROM (
-                    LOAD FROM tag_links
-                    RETURN cast(source, 'UUID'), target
-                )
-            """
-        )
+        conn.execute("COPY LINKS_AS_TAG FROM tag_links")
 
     block_links = exporter.block_links
     logger.info("Saving %s block links", len(block_links))
 
     if len(block_links):
-        conn.execute(
-            """
-                COPY LINKS_TO_BLOCK FROM (
-                    LOAD FROM block_links
-                    RETURN cast(source, 'UUID'), cast(target, 'UUID')
-                )
-            """
-        )
+        conn.execute("COPY LINKS_TO_BLOCK FROM block_links")
 
     resources, resource_links = exporter.resource_links
     logger.info("Saving %s resources", len(resources))
-    conn.execute("COPY Resource FROM (LOAD FROM resources RETURN *)")
+    conn.execute("COPY Resource FROM resources")
 
     logger.info("Saving %s resource links", len(resource_links))
 
     if len(resource_links):
-        conn.execute(
-            """
-                COPY LINKS_TO_RESOURCE FROM (
-                    LOAD FROM resource_links
-                    RETURN cast(source, 'UUID'), target, label
-                )
-            """
-        )
+        conn.execute("COPY LINKS_TO_RESOURCE FROM resource_links")
 
     logger.info("Finished saving block data.")
 
@@ -155,21 +99,19 @@ def save_graph_pages(exporter: GraphExporter, conn: kuzu.Connection) -> None:
 
     pages = exporter.pages
     logger.info("Saving %s pages", len(pages))
-    conn.execute("COPY Page FROM (LOAD FROM pages RETURN *)")
+    conn.execute("COPY Page FROM pages")
 
     namespaces = exporter.namespaces
     logger.info("Saving %s namespaces", len(namespaces))
-    conn.execute("COPY IN_NAMESPACE FROM (LOAD FROM namespaces RETURN *)")
+    conn.execute("COPY IN_NAMESPACE FROM namespaces")
 
     page_properties = exporter.page_properties
     logger.info("Saving %s page properties", len(page_properties))
-    conn.execute(
-        "COPY HAS_PROPERTY_Page_Page FROM (LOAD FROM page_properties RETURN *)"
-    )
+    conn.execute("COPY HAS_PROPERTY_Page_Page FROM page_properties")
 
     tags = exporter.page_tags
     logger.info("Saving %s tags", len(tags))
-    conn.execute("COPY IS_TAGGED_Page_Page FROM (LOAD FROM tags RETURN *)")
+    conn.execute("COPY IS_TAGGED_Page_Page FROM tags")
 
     logger.info("Database populated with page data.")
 

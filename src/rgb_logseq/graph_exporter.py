@@ -190,7 +190,7 @@ class GraphExporter(BaseModel):
         """Return a DataFrame of all tag links in the graph."""
         return pd.DataFrame(
             [
-                {"source": str(block.id), "target": link.target, "as_tag": True}
+                {"source": str(block.id), "target": link.target}
                 for block in self.graph.blocks.values()
                 for link in block.tag_links
             ],
